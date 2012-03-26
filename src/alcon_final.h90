@@ -1,0 +1,27 @@
+! finalization
+if (mype == 0) then
+  do i = m1, m2
+    if (fgpdat(i) > 0) then
+      close (fgpdat(i))
+    endif
+  enddo
+  deallocate (acdprofile, acdfft)
+endif
+call VecDestroy(evecim, ierr)
+CHKERRQ(ierr)
+call VecDestroy(evecre, ierr)
+CHKERRQ(ierr)
+!call EPSDestroy(acsolver, ierr)
+!CHKERRQ(ierr)
+call MatDestroy(matB, ierr)
+CHKERRQ(ierr)
+call MatDestroy(matA, ierr)
+CHKERRQ(ierr)
+call date_and_time(cdate(3), cdate(4))
+write (msg, *) 'Program starts at DATE=', cdate(1), 'TIME=', cdate(2), '\n'
+call PetscPrintf(MPI_COMM_WORLD, msg, ierr)
+CHKERRQ(ierr)
+write (msg, *) 'Program ends at   DATE=', cdate(3), 'TIME=', cdate(4), '\n'
+call PetscPrintf(MPI_COMM_WORLD, msg, ierr)
+CHKERRQ(ierr)
+
