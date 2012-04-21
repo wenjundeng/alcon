@@ -42,12 +42,16 @@ along with ALCON.  If not, see <http://www.gnu.org/licenses/>.
 System requirements
 -------------------
 
-ALCON requires MPI-2, and the complex version of PETSc and SLEPc.  ALCON has
-been tested with MPICH2-1.4, OpenMPI 1.5, PETSc and SLEPc 3.2.  Although with a
+ALCON requires MPI-2, and the complex version of
+[PETSc](http://www.mcs.anl.gov/petsc/) and
+[SLEPc](http://www.grycap.upv.es/slepc/).  ALCON has been tested with
+[MPICH2](http://www.mcs.anl.gov/research/projects/mpich2/) 1.4,
+[OpenMPI](http://www.open-mpi.org/) 1.5, PETSc and SLEPc 3.2.  Although with a
 few tweaks ALCON can probably work with PETSc and SLEPc 3.0 and 3.1, it is
 recommended to use PETSc and SLEPc 3.2.
 
-ALCON also requires a Fortran 90 compiler for compilation.
+ALCON also requires a Fortran 90 compiler for compilation.  ALCON has been
+tested with [GNU Fortran](http://gcc.gnu.org/fortran/) 4.6.
 
 Unless you keep excessive (100+) poloidal m-harmonics and want excessive high
 radial resolution (solving 5000+ radial grid points), ALCON should be able to
