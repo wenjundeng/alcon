@@ -174,7 +174,7 @@ Report bugs, request new features at:
 
 Contribute patches, new features by forking the project on GitHub:
 <http://github.com/wenjundeng/alcon>, applying your contributions to the forked
-project, then submit a pull request at:
+project, and then submitting a pull request at:
 <http://github.com/wenjundeng/alcon/pulls>.
 
 
