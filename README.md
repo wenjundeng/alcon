@@ -1,6 +1,6 @@
 ALCON
 =====
-version 2012-04-21 00:06:12-04:00
+version 2012-04-21 18:04:29-04:00
 ---------------------------------
 
 ALCON is a code for solving ideal MHD Alfven continua in tokamaks,
@@ -172,9 +172,10 @@ Get latest updates on the project website:
 Report bugs, request new features at:
 <http://github.com/wenjundeng/alcon/issues>.
 
-Contribute by forking the project on GitHub:
-<http://github.com/wenjundeng/alcon>, making changes to the forked project,
-then submit a pull request at: <http://github.com/wenjundeng/alcon/pulls>.
+Contribute patches, new features by forking the project on GitHub:
+<http://github.com/wenjundeng/alcon>, applying your contributions to the forked
+project, then submit a pull request at:
+<http://github.com/wenjundeng/alcon/pulls>.
 
 
 Acknowledgments

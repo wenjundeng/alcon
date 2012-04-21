@@ -60,7 +60,6 @@ PetscInt, parameter :: finitebeta = 3
 ! if eqtype = 60, the radial coordinate is determined by profile.dat
 !   note that if rad1 == 0, on the first radial grid, all matrix elements are
 !   0, so there would be no output for the first radial grid
-!PetscReal, parameter :: rad1 = 0.66960070000000005_kpr, rad2 = 0.66960070000000005_kpr
 PetscReal, parameter :: rad1 = 0.01_kpr, rad2 = 1.0_kpr
 
 ! number of radial grid points
@@ -107,7 +106,7 @@ PetscReal, parameter :: omegascale = 1.0_kpr
 ! if scaled solution of omega is larger than this cut-off frequency, then drop
 !   this solution.
 ! set to negative to disable cutting-off, in which case it is recommended to
-!   set a vertical plotting range in your plotting script to avoid makeing a
+!   set a vertical plotting range in your plotting script to avoid making a
 !   figure dominated by continua of extremely high frequencies.
 PetscReal, parameter :: omegacutoff = 1.0_kpr
 
