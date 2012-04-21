@@ -1,2 +1,13 @@
-*.swp
+*.o
+*.mod
+
+alcon
+alcon.log
+output
+
+testcsp
+testcsp.log
+fexact.dat
+ftab.dat
+fip.dat
 
