@@ -20,16 +20,11 @@ use alcon_input
 implicit none
 #include "finclude/petscdef.h"
 
-PetscInt, parameter :: acs_fdatout_base = 1000
-
 ! these variables are private to this module and solely used for sharing data between the subroutines in this module
 ! DO NOT access them directly. use the subroutines provided by this module.
 MPI_Comm :: acs_comm
 Mat :: acs_matA, acs_matB ! matrixes described in Eqs. (A.20) and (A.21) in [Nuclear Fusion 52, 043006 (2012)]
 Vec :: acs_vecEigenRe, acs_vecEigenIm ! eigenvectores. note that acs_vecEigenIm is only for conforming SLEPc syntax. both real and imaginary parts of the eigenvector are stored in acs_vecEigenRe
-PetscInt, dimension(0 : (m2 - m1 + 1) * 2 - 1) :: acs_fdatout = 0 ! output data file numbers
-character(40), dimension(0 : (m2 - m1 + 1) * 2 - 1) :: acs_filename_datout = ""  ! output data file names
-character(10) :: acs_fnext_datout = ".dat" ! file name extension for output data files
 PetscInt :: acs_npe, acs_mype ! # of MPI processes; rank of current MPI process
 
 contains
@@ -122,13 +117,6 @@ implicit none
 PetscInt :: idatout
 
 PetscErrorCode :: ierr
-
-! close output files
-do idatout = m1, m2
-  if (acs_fdatout(idatout) > 0) then
-    close (acs_fdatout(idatout))
-  endif
-enddo
 
 ! destroy PETSc and SLEPc objects
 call VecDestroy(acs_vecEigenIm, ierr)
