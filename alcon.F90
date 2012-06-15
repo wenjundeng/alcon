@@ -25,14 +25,14 @@ implicit none
 #include "finclude/petsc.h90"
 #include "finclude/slepc.h"
 
-character(25), parameter :: version = '2012-05-19 18:43:25-04:00'
+character(25), parameter :: version = '2012-06-14 21:26:35-04:00'
 
 ! indexing variables
 PetscInt :: i
-PetscInt :: irad, iprofile, ifft, ifftdata, iprogress
+PetscInt :: irad, iprofile, ifft, ifftdata, iprogress ! indexing variables
 
 PetscInt, dimension(10) :: progress ! for tracking running progress
-character(10) :: datetime(4) ! times when program starts and ends
+PetscReal :: wt1, wt2 ! wall clock timer
 PetscErrorCode :: ierr ! error code for MPI, PETSc, and SLEPc
 PetscInt :: iacerr ! error code for ALCON
 
@@ -66,11 +66,10 @@ CHKERRQ(ierr)
 stop 1
 #endif
 
-call date_and_time(datetime(1), datetime(2))
-
 ! initialization
 call SlepcInitialize(PETSC_NULL_CHARACTER, ierr)
 CHKERRQ(ierr)
+wt1 = MPI_Wtime() ! record start time
 call MPI_Comm_rank(MPI_COMM_WORLD, mype, ierr)
 CHKERRQ(ierr)
 
@@ -276,8 +275,8 @@ if (verbosity >= 2) then
   call PetscPrintf(MPI_COMM_WORLD, "Info: writing extra output files...\n", ierr)
   CHKERRQ(ierr)
 endif
-if (mype == 0) then
-  call alcon_output_extra
+if (mype < ndom_rad) then ! radial domain heads write extra output files
+  call alcon_output_extra(comm_radhead)
 endif
 
 if (verbosity >= 1) then
@@ -288,14 +287,49 @@ endif
 ! solver finalization, destroy PETSc and SLEPc objects
 call alcon_solver_final
 
+
+if (verbosity >= 1) then
+  wt2 = MPI_Wtime()
+  call PetscPrintf(MPI_COMM_WORLD, "Info: time spent by ALCON: " // sec2text(wt2 - wt1) // "\n", ierr)
+  CHKERRQ(ierr)
+endif
+
 call SlepcFinalize(ierr)
 CHKERRQ(ierr)
 
-if (verbosity >= 1 .and. mype == 0) then
-  call date_and_time(datetime(3), datetime(4))
-  write (*, "(4a)") 'Info: ALCON started at date:', datetime(1), 'time:', datetime(2)
-  write (*, "(4a)") 'Info: ALCON ended   at date:', datetime(3), 'time:', datetime(4)
-endif
+contains
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! converts # of seconds to human readable text !
+! e.g., 5.2min, 3.2hr, 4.1day                  !
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+character(len = 9) function sec2text(sec)
+implicit none
+
+PetscReal, intent(in) :: sec 
+PetscReal :: numtime
+
+character(len = 3) :: suffix
+character(len = 9) :: text
+
+suffix = "sec"
+numtime = sec 
+if (numtime > 60.0_kpr) then
+  numtime = numtime / 60.0_kpr
+  suffix = "min"
+  if (numtime > 60.0_kpr) then
+    numtime = numtime / 60.0_kpr
+    suffix = "hr"
+    if (numtime > 24.0_kpr) then
+      numtime = numtime / 24.0_kpr
+      suffix = "day"
+    end if
+  end if
+end if
+write (text, "(f6.1, a)") numtime, suffix
+sec2text = adjustr(text)
+
+end function sec2text
 
 end program alcon
 

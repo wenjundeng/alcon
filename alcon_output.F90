@@ -192,18 +192,55 @@ end subroutine alcon_output_data
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! generate extra output files, such as plotting script and Makefile !
-! should only be called by root MPI process                         !
+! should only be called by radial domain head MPI processes         !
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-subroutine alcon_output_extra
+subroutine alcon_output_extra(comm_radhead)
 implicit none
 #include "finclude/petsc.h90"
+
+MPI_Comm, intent(in) :: comm_radhead
+
+! # of data summed over all radial domains
+PetscInt, dimension(0 : (m2 - m1 + 1) * 2 - 1) :: ndata_sum
+
+PetscInt :: mype
+
+PetscErrorCode :: ierr
+
+! sum # of data over all radial domains
+call MPI_Reduce( &
+  aco_ndata, ndata_sum, (m2 - m1 + 1) * 2, MPI_INTEGER, &
+  MPI_SUM, 0, comm_radhead, ierr &
+)
+CHKERRQ(ierr)
+
+call MPI_Comm_rank(comm_radhead, mype, ierr)
+CHKERRQ(ierr)
+
+if (mype == 0) then
+  call alcon_output_plotscript(ndata_sum)
+endif
+
+end subroutine alcon_output_extra
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! generate plotting script and Makefile  !
+! should be called by alcon_output_extra !
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+subroutine alcon_output_plotscript(ndata)
+implicit none
+#include "finclude/petsc.h90"
+
+! # of data summed over all radial domains
+PetscInt, dimension(0 : (m2 - m1 + 1) * 2 - 1), intent(in) :: ndata
 
 PetscInt, parameter :: fmatlab = 203, fidl = 204, fgp = 205, fmakefile = 206
 PetscInt, parameter :: ialcon_output_filenamestart = 8
 
 PetscInt :: ncolor ! number of colors available in a specified terminal of gnuplot
 PetscInt :: nlabeled ! number of m harmonics that are labeled in gnuplot
-PetscInt :: imlast1, imlast2 ! index of the output file that has the largest index in acs_fdatout, imlast1 for first half of acs_fdatout, imlast2 for overall
+PetscInt :: imlast1, imlast2 ! index of the output file that has the largest index in aco_data, imlast1 for first half of aco_data, imlast2 for overall
 character(2) :: linestyle ! linestyle number in gnuplot or color number in MATLAB
 character(100) :: linetrailing ! trailing string of a line
 character(3) :: string_m
@@ -212,14 +249,14 @@ character(3) :: string_mindex ! m indexing for generating MATLAB legend
 PetscInt :: im, i
 
 do im = m2 - m1, 0, -1
-  if (aco_ndata(im) > 0) then
+  if (ndata(im) > 0) then
     imlast1 = im
     exit
   endif
 enddo
 if (finitebeta > 2) then
   do im = (m2 - m1 + 1) * 2 - 1, m2 - m1 + 1, -1
-    if (aco_ndata(im) > 0) then
+    if (ndata(im) > 0) then
       imlast2 = im
       exit
     endif
@@ -235,7 +272,7 @@ select case (outformat)
 
     open (fmatlab, file = 'output/alcon.m', status = 'replace')
     do im = 0, imlast2
-      if (aco_ndata(im) > 0) then
+      if (ndata(im) > 0) then
         write (fmatlab, "(4a)") "load '", trim(alcon_output_filename(im, PETSC_FALSE, PETSC_TRUE)), "'"
       endif
     enddo
@@ -261,7 +298,7 @@ select case (outformat)
     write (fmatlab, "(a)") "hold on"
     if (finitebeta > 2) then
       do im = m2 - m1 + 1, min((m2 - m1 + 1) + (out_label_m1 - m1) - 1, imlast2)
-        if (aco_ndata(im) > 0) then
+        if (ndata(im) > 0) then
           write (fmatlab, "(5a)") "scatter(", trim(alcon_output_filename(im, PETSC_FALSE, PETSC_FALSE)), &
             "(:,1),", trim(alcon_output_filename(im, PETSC_FALSE, PETSC_FALSE)), &
             "(:,2),1,colortable( 2,:),'.')"
@@ -269,7 +306,7 @@ select case (outformat)
       enddo
 
       do im = (m2 - m1 + 1) + out_label_m1 - m1, min((m2 - m1 + 1) + out_label_m1 - m1 + nlabeled - 1, imlast2)
-        if (aco_ndata(im) > 0) then
+        if (ndata(im) > 0) then
           write (linestyle, '(i2)') min(3 + im - ((m2 - m1 + 1) + out_label_m1 - m1), 3 + ncolor - 1)
           write (fmatlab, "(7a)") "scatter(", trim(alcon_output_filename(im, PETSC_FALSE, PETSC_FALSE)), &
             "(:,1),", trim(alcon_output_filename(im, PETSC_FALSE, PETSC_FALSE)), &
@@ -278,7 +315,7 @@ select case (outformat)
       enddo
 
       do im = (m2 - m1 + 1) + out_label_m1 - m1 + nlabeled, imlast2
-        if (aco_ndata(im) > 0) then
+        if (ndata(im) > 0) then
           write (fmatlab, "(5a)") "scatter(", trim(alcon_output_filename(im, PETSC_FALSE, PETSC_FALSE)), &
             "(:,1),", trim(alcon_output_filename(im, PETSC_FALSE, PETSC_FALSE)), &
             "(:,2),1,colortable( 2,:),'.')"
@@ -287,7 +324,7 @@ select case (outformat)
     endif ! (finitebeta > 2)
 
     do im = 0, (out_label_m1 - m1) - 1
-      if (aco_ndata(im) > 0) then
+      if (ndata(im) > 0) then
         write (fmatlab, "(5a)") "scatter(", trim(alcon_output_filename(im, PETSC_FALSE, PETSC_FALSE)), &
           "(:,1),", trim(alcon_output_filename(im, PETSC_FALSE, PETSC_FALSE)), &
           "(:,2),20,colortable( 1,:),'filled')"
@@ -296,7 +333,7 @@ select case (outformat)
 
     i = 1
     do im = out_label_m1 - m1, min(out_label_m1 - m1 + nlabeled - 1, imlast1)
-      if (aco_ndata(im) > 0) then
+      if (ndata(im) > 0) then
         write (linestyle, '(i2)') min(3 + im - (out_label_m1 - m1), 3 + ncolor - 1)
         write (string_mindex, "(i3)") i
         write (fmatlab, "(9a)") "hm(", string_mindex, ")=scatter(", &
@@ -308,7 +345,7 @@ select case (outformat)
     enddo
 
     do im = out_label_m1 - m1 + nlabeled, imlast1
-      if (aco_ndata(im) > 0) then
+      if (ndata(im) > 0) then
         write (fmatlab, "(5a)") "scatter(", trim(alcon_output_filename(im, PETSC_FALSE, PETSC_FALSE)), &
           "(:,1),", trim(alcon_output_filename(im, PETSC_FALSE, PETSC_FALSE)), &
           "(:,2),20,colortable( 1,:),'filled')"
@@ -319,7 +356,7 @@ select case (outformat)
     ! generate legend
     write (fmatlab, "(a)") "legend(hm, ..."
     do im = out_label_m1 - m1, min(out_label_m1 - m1 + nlabeled - 1, imlast1)
-      if (aco_ndata(im) > 0) then
+      if (ndata(im) > 0) then
         write (string_m, "(i3)") im + m1
         write (fmatlab, "(3a)") "'m=", trim(adjustl(string_m)), "', ..."
       endif
@@ -393,7 +430,7 @@ select case (outformat)
       write (fidl, "(a, i3, a)") "arrayomegamax = dblarr(", imlast2 + 1, ")"
     endif
     do im = 0, imlast2
-      if (aco_ndata(im) > 0) then
+      if (ndata(im) > 0) then
         write (fidl, "(3a)") "nlines = file_lines('", &
           trim(alcon_output_filename(im, PETSC_FALSE, PETSC_TRUE)), "', /noexpand_path)"
         write (string_mindex, "(i3)") im
@@ -428,7 +465,7 @@ select case (outformat)
       out_ylabel, "', color = colortable(3)"
     if (finitebeta > 2) then
       do im = m2 - m1 + 1, min((m2 - m1 + 1) + (out_label_m1 - m1) - 1, imlast2)
-        if (aco_ndata(im) > 0) then
+        if (ndata(im) > 0) then
           write (string_mindex, "(i3)") im
           write (fidl, "(5a)") "oplot, data", trim(adjustl(string_mindex)), "(0, *), data", &
             trim(adjustl(string_mindex)), "(1, *), color = colortable( 1)"
@@ -436,7 +473,7 @@ select case (outformat)
       enddo
 
       do im = (m2 - m1 + 1) + out_label_m1 - m1, min((m2 - m1 + 1) + out_label_m1 - m1 + nlabeled - 1, imlast2)
-        if (aco_ndata(im) > 0) then
+        if (ndata(im) > 0) then
           write (string_mindex, "(i3)") im
           write (linestyle, "(i2)") 3 + im - ((m2 - m1 + 1) + out_label_m1 - m1)
           write (fidl, "(7a)") "oplot, data", trim(adjustl(string_mindex)), "(0, *), data", &
@@ -445,7 +482,7 @@ select case (outformat)
       enddo
 
       do im = (m2 - m1 + 1) + out_label_m1 - m1 + nlabeled, imlast2
-        if (aco_ndata(im) > 0) then
+        if (ndata(im) > 0) then
           write (string_mindex, "(i3)") im
           write (fidl, "(5a)") "oplot, data", trim(adjustl(string_mindex)), "(0, *), data", &
             trim(adjustl(string_mindex)), "(1, *), color = colortable( 1)"
@@ -454,7 +491,7 @@ select case (outformat)
     endif
 
     do im = 0, min((out_label_m1 - m1) - 1, imlast1)
-      if (aco_ndata(im) > 0) then
+      if (ndata(im) > 0) then
         write (string_mindex, "(i3)") im
         write (fidl, "(5a)") "oplot, data", trim(adjustl(string_mindex)), "(0, *), data", &
           trim(adjustl(string_mindex)), "(1, *), color = colortable( 0), symsize = 3.0"
@@ -462,7 +499,7 @@ select case (outformat)
     enddo
 
     do im = out_label_m1 - m1, min(out_label_m1 - m1 + nlabeled - 1, imlast1)
-      if (aco_ndata(im) > 0) then
+      if (ndata(im) > 0) then
         write (string_mindex, "(i3)") im
         write (linestyle, "(i2)") 3 + im - (out_label_m1 - m1)
         write (fidl, "(7a)") "oplot, data", trim(adjustl(string_mindex)), "(0, *), data", &
@@ -471,7 +508,7 @@ select case (outformat)
     enddo
 
     do im = out_label_m1 - m1 + nlabeled, imlast1
-      if (aco_ndata(im) > 0) then
+      if (ndata(im) > 0) then
         write (string_mindex, "(i3)") im
         write (fidl, "(5a)") "oplot, data", trim(adjustl(string_mindex)), "(0, *), data", &
           trim(adjustl(string_mindex)), "(1, *), color = colortable( 0), symsize = 3.0"
@@ -481,7 +518,7 @@ select case (outformat)
 
     write (fidl, "(a)") "; put label at the data average position"
     do im = out_label_m1 - m1, min(out_label_m1 - m1 + nlabeled - 1, imlast1)
-      if (aco_ndata(im) > 0) then
+      if (ndata(im) > 0) then
         write (string_mindex, "(i3)") im
         write (string_m, "(i3)") im + m1
         write (linestyle, "(i2)") 3 + im - (out_label_m1 - m1)
@@ -592,14 +629,14 @@ select case (outformat)
     write (fgp, "(a)") "plot \"
     if (finitebeta > 2) then
       do im = m2 - m1 + 1, min((m2 - m1 + 1) + (out_label_m1 - m1) - 1, imlast2)
-        if (aco_ndata(im) > 0) then
+        if (ndata(im) > 0) then
           write (fgp, "(3a)") "'", trim(alcon_output_filename(im, PETSC_FALSE, PETSC_TRUE)), &
             "' notitle with points ls 41, \"
         endif
       enddo
 
       do im = (m2 - m1 + 1) + out_label_m1 - m1, min((m2 - m1 + 1) + out_label_m1 - m1 + nlabeled - 1, imlast2)
-        if (aco_ndata(im) > 0) then
+        if (ndata(im) > 0) then
           write (linestyle, '(i2)') min(42 + im - ((m2 - m1 + 1) + out_label_m1 - m1), 42 + ncolor - 1)
           write (fgp, "(5a)") "'", trim(alcon_output_filename(im, PETSC_FALSE, PETSC_TRUE)), &
             "' notitle with points ls ", linestyle, ", \"
@@ -607,7 +644,7 @@ select case (outformat)
       enddo
 
       do im = (m2 - m1 + 1) + out_label_m1 - m1 + nlabeled, imlast2
-        if (aco_ndata(im) > 0) then
+        if (ndata(im) > 0) then
           write (fgp, "(3a)") "'", trim(alcon_output_filename(im, PETSC_FALSE, PETSC_TRUE)), &
             "' notitle with points ls 41, \"
         endif
@@ -615,7 +652,7 @@ select case (outformat)
     endif ! (finitebeta > 2)
 
     do im = 0, min((out_label_m1 - m1) - 1, imlast1)
-      if (aco_ndata(im) > 0) then
+      if (ndata(im) > 0) then
         if (im < imlast1) then
           linetrailing = ", \"
         else
@@ -627,7 +664,7 @@ select case (outformat)
     enddo
 
     do im = out_label_m1 - m1, min(out_label_m1 - m1 + nlabeled - 1, imlast1)
-      if (aco_ndata(im) > 0) then
+      if (ndata(im) > 0) then
         if (im < imlast1) then
           linetrailing = ", \"
         else
@@ -642,7 +679,7 @@ select case (outformat)
     enddo
 
     do im = out_label_m1 - m1 + nlabeled, imlast1
-      if (aco_ndata(im) > 0) then
+      if (ndata(im) > 0) then
         if (im < imlast1) then
           linetrailing = ", \"
         else
@@ -687,7 +724,7 @@ select case (outformat)
         write (fmakefile, "(a)") "alcon.mp : alcon.gp \"
       endif
       do im = 0, imlast2
-        if (aco_ndata(im) > 0) then
+        if (ndata(im) > 0) then
           if (im < imlast2) then
             linetrailing = " \"
           else
@@ -737,7 +774,7 @@ select case (outformat)
   case default
     return
 endselect
-end subroutine alcon_output_extra
+end subroutine alcon_output_plotscript
 
 end module alcon_output
 
