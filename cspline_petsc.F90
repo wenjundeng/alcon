@@ -64,7 +64,7 @@ if (ndata < 3) then
   call PetscPrintf(PETSC_COMM_WORLD, "cspline is not initialized.\n", ierr)
   CHKERRQ(ierr)
   return
-endif
+end if
 
 cspline_ndata = ndata
 
@@ -154,7 +154,7 @@ if (cspline_ndata == cspline_ndata_default) then
   CHKERRQ(ierr)
   d2y = 0.0_cskpr
   return
-endif
+end if
 
 ! check if x is strictly increasing
 do k = 0, cspline_ndata - 2
@@ -165,8 +165,8 @@ do k = 0, cspline_ndata - 2
     CHKERRQ(ierr)
     d2y = 0.0_cskpr
     return
-  endif
-enddo
+  end if
+end do
 
 ! assign values for cspline_vecb
 call VecGetOwnershipRange(cspline_vecb, ilow, ihigh, ierr)
@@ -179,18 +179,18 @@ do k = ilow, ihigh - 1
       values(nindex) = 0.0_cskpr
     else ! clamped boundary condition
       values(nindex) = 3.0_cskpr * ((y(k + 1) - y(k)) / (x(k + 1) - x(k)) - dyb1)
-    endif
+    end if
   elseif (k == cspline_ndata - 1) then
     if (bc == 0) then ! natural (free) boundary condition
       values(nindex) = 0.0_cskpr
     else ! clamped boundary condition
       values(nindex) = 3.0_cskpr * (dyb2 - (y(k) - y(k - 1)) / (x(k) - x(k - 1)))
-    endif
+    end if
   else
     values(nindex) = 3.0_cskpr * ((y(k + 1) - y(k)) / (x(k + 1) - x(k)) - (y(k) - y(k - 1)) / (x(k) - x(k - 1)))
-  endif
+  end if
   nindex = nindex + 1
-enddo
+end do
 call VecSetValues(cspline_vecb, nindex, indices, values, INSERT_VALUES, ierr)
 CHKERRQ(ierr)
 call VecAssemblyBegin(cspline_vecb, ierr)
@@ -221,7 +221,7 @@ do k = ilow, ihigh - 1
       indices(nindex) = k + 1
       values(nindex) = x(k + 1) - x(k)
       nindex = nindex + 1
-    endif
+    end if
   elseif (k == cspline_ndata - 1) then
     if (bc == 0) then ! natural (free) boundary condition
       indices(nindex) = k
@@ -239,7 +239,7 @@ do k = ilow, ihigh - 1
       indices(nindex) = k - 1
       values(nindex) = x(k) - x(k - 1)
       nindex = nindex + 1
-    endif
+    end if
   else ! (k /= 0 .and. k /= cspline_ndata - 1)
     indices(nindex) = k - 1
     values(nindex) = x(k) - x(k - 1)
@@ -252,10 +252,10 @@ do k = ilow, ihigh - 1
     indices(nindex) = k + 1
     values(nindex) = x(k + 1) - x(k)
     nindex = nindex + 1
-  endif
+  end if
   call MatSetValues(cspline_matA, 1, k, nindex, indices, values, INSERT_VALUES, ierr)
   CHKERRQ(ierr)
-enddo
+end do
 call MatAssemblyBegin(cspline_matA, MAT_FINAL_ASSEMBLY, ierr)
 CHKERRQ(ierr)
 
@@ -344,14 +344,14 @@ if (xip < x(0) .or. xip > x(cspline_ndata - 1)) then
     call PetscPrintf(PETSC_COMM_WORLD, "extrapolation = 0 in the main program.\n", ierr)
     CHKERRQ(ierr)
     if (cspline_warning_extrapolation == 1) cspline_warning_extrapolation = 0
-  endif
+  end if
   if (xip < x(0)) then
     k1 = 0
     k2 = 1
   else
     k1 = cspline_ndata - 2
     k2 = cspline_ndata - 1
-  endif
+  end if
 else
   k1 = 0
   k2 = cspline_ndata - 1
@@ -361,9 +361,9 @@ else
       k2 = k3
     else
       k1 = k3
-    endif
-  enddo
-endif
+    end if
+  end do
+end if
 yip = y(k1) &
   + (xip - x(k1)) * ((y(k2) - y(k1)) / (x(k2) - x(k1)) - (x(k2) - x(k1)) * (2.0_cskpr * d2y(k1) + d2y(k2)) / 6.0_cskpr) &
   + (xip - x(k1))**2 * d2y(k1) / 2.0_cskpr &
@@ -433,7 +433,7 @@ if (ix1 /= lbound(yip, 1) .or. ix2 /= ubound(yip, 1)) then
   yip = 0.0_cskpr
 #endif
   return
-endif
+end if
 
 ! check if xip is strictly increasing
 do i = ix1, ix2 - 1
@@ -448,8 +448,8 @@ do i = ix1, ix2 - 1
   yip = 0.0_cskpr
 #endif
     return
-  endif
-enddo
+  end if
+end do
 
 if (xip(ix1) < x(0) .or. xip(ix2) > x(cspline_ndata - 1)) then
   if (cspline_warning_extrapolation > 0) then
@@ -462,8 +462,8 @@ if (xip(ix1) < x(0) .or. xip(ix2) > x(cspline_ndata - 1)) then
     call PetscPrintf(PETSC_COMM_WORLD, "extrapolation = 0 in the main program\n", ierr)
     CHKERRQ(ierr)
     if (cspline_warning_extrapolation == 1) cspline_warning_extrapolation = 0
-  endif
-endif
+  end if
+end if
 
 k1 = 0
 k2 = cspline_ndata - 1
@@ -472,21 +472,21 @@ do i = ix1, ix2
     if (i /= ix1 .and. xip(i) >= x(k2)) then
       k1 = k2
       k2 = cspline_ndata - 1
-    endif
+    end if
     do while (k2 - k1 > 1)
       k3 = (k1 + k2) / 2
       if (xip(i) < x(k3)) then
         k2 = k3
       else
         k1 = k3
-      endif
-    enddo
-  endif
+      end if
+    end do
+  end if
   yip(i) = y(k1) &
     + (xip(i) - x(k1)) * ((y(k2) - y(k1)) / (x(k2) - x(k1)) - (x(k2) - x(k1)) * (2.0_cskpr * d2y(k1) + d2y(k2)) / 6.0_cskpr) &
     + (xip(i) - x(k1))**2 * d2y(k1) / 2.0_cskpr &
     + (xip(i) - x(k1))**3 * (d2y(k2) - d2y(k1)) / (6.0_cskpr * (x(k2) - x(k1)))
-enddo
+end do
 
 end subroutine cspline_interpolate_inc
 

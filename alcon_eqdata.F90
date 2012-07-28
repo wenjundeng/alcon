@@ -49,7 +49,7 @@ if (nrad == 1) then ! only one grid point, then take it on rad1
   acdprofile(1, 1) = rad1
 else ! more than one grid points, then uniform grids ranging [rad1, rad2]
   acdprofile(1, :) = (/ (rad1 + (rad2 - rad1) * (irad - 1.0_kpr) / (max(nrad, 2) - 1.0_kpr), irad = 1, nrad) /)
-endif
+end if
 end subroutine alcon_eqdata_radgrids
 
 
@@ -114,21 +114,21 @@ if (mype == 0) then
     write (*, "(a)") trim(adjustl(msg))
     write (msg, *) "[alcon_eqdata_load_sa] Info: nprofiledata1_sa = ", nprofiledata1_sa
     write (*, "(a)") trim(adjustl(msg))
-  endif
+  end if
   if (nprofiledata1_sa /= nprofiledata_sa) then
     ! # of profiles in profile_sa.dat not correct
     iacerr = 1
   else
     allocate (profile_sa(nprofiledata_sa * nrad_sa))
     read (fprofile_sa, *) profile_sa
-  endif
+  end if
   close (fprofile_sa)
-endif ! if (mype == 0)
+end if ! if (mype == 0)
 if (verbosity >= 2) then
   write (msg, *) "[alcon_eqdata_load_sa] Info: iacerr = ", iacerr, "\n"
   call PetscPrintf(MPI_COMM_WORLD, adjustl(msg), ierr)
   CHKERRQ(ierr)
-endif
+end if
 intbuf(1) = iacerr
 intbuf(2) = nrad_sa
 ! broadcast error code
@@ -139,24 +139,24 @@ nrad_sa = intbuf(2)
 if (verbosity >= 3) then
   call PetscPrintf(MPI_COMM_WORLD, "[alcon_eqdata_load_sa] Info: successfully broadcasted iacerr and nrad_sa.\n", ierr)
   CHKERRQ(ierr)
-endif
+end if
 if (iacerr > 0) then
   return
-endif
+end if
 ! broadcast aminor
 call MPI_Bcast(aminor, 1, MPIU_REAL, 0, MPI_COMM_WORLD, ierr)
 CHKERRQ(ierr)
 
 if (mype /= 0) then
   allocate (profile_sa(nprofiledata_sa * nrad_sa))
-endif
+end if
 ! broadcast profile_sa
 call MPI_Bcast(profile_sa, nprofiledata_sa * nrad_sa, MPIU_REAL, 0, MPI_COMM_WORLD, ierr)
 CHKERRQ(ierr)
 if (verbosity >= 3) then
   call PetscPrintf(MPI_COMM_WORLD, "[alcon_eqdata_load_sa] Info: successfully broadcasted profile_sa.\n", ierr)
   CHKERRQ(ierr)
-endif
+end if
 
 ! calculate acdprofile
 call alcon_eqdata_radgrids ! generate radial grids (acdprofile(1, :))
@@ -165,19 +165,19 @@ if (verbosity >= 2) then
   CHKERRQ(ierr)
   call PetscPrintf(MPI_COMM_WORLD, "rated radial grids (alcon_eqdata_radgrids).\n", ierr)
   CHKERRQ(ierr)
-endif
+end if
 ! initialize cspline_petsc
 call cspline_init(nrad_sa)
 cspline_warning_extrapolation = 1 ! let cspline_petsc to show warning of extrapolation only once
 if (verbosity >= 2) then
   call PetscPrintf(MPI_COMM_WORLD, "[alcon_eqdata_load_sa] Info: successfully initialized cspline_petsc.\n", ierr)
   CHKERRQ(ierr)
-endif
+end if
 allocate (d2profile(nrad_sa))
 if (verbosity >= 2) then
   call PetscPrintf(MPI_COMM_WORLD, "[alcon_eqdata_load_sa] Info: successfully allocated d2profile.\n", ierr)
   CHKERRQ(ierr)
-endif
+end if
 ! rho = profile_sa(1 : nprofiledata_sa * nrad_sa : nprofiledata_sa)
 ! q = profile_sa(2 : nprofiledata_sa * nrad_sa : nprofiledata_sa)
 ! beta# = profile_sa(3 : nprofiledata_sa * nrad_sa : nprofiledata_sa)
@@ -194,7 +194,7 @@ do iprofile = 2, nprofiledata_sa
     profile_sa(iprofile : nprofiledata_sa * nrad_sa : nprofiledata_sa), &
     d2profile(:), acdprofile(1, :), acdprofile(iprofile, :) &
   )
-enddo
+end do
 ! shift acdprofile(3 : 4, :) to acdprofile(4 : 5, :)
 acdprofile(5, :) = acdprofile(4, :)
 acdprofile(4, :) = acdprofile(3, :)
@@ -222,7 +222,7 @@ acdfft(0, 1, :) = cmplx((acdprofile(1, :) * aminor / acdprofile(2, :))**2 / acdp
 !       + 5/2 epsilon**2 (exp(i 2 theta) + exp(-i 2 theta)) + O(epsilon**3)
 do ifft = 0, min(2, noffdiag)
   acdfft(ifft, 2, :) = cmplx((acdprofile(1, :) * aminor / acdprofile(2, :))**2 * acdprofile(3, :), 0.0_kpr, kpr) ! (epsilon/q)**2 * (g q + I)
-enddo
+end do
 ! multiply by 1/B^4
 acdfft(0, 2, :) = acdfft(0, 2, :) * (1 + (acdprofile(1, :) * aminor)**2 * (3.0_kpr - 2.0_kpr / acdprofile(2, :)**2))
 if (noffdiag >= 1) acdfft(min(noffdiag, 1), 2, :) = acdfft(min(noffdiag, 1), 2, :) * 2.0_kpr * acdprofile(1, :) * aminor
@@ -254,7 +254,7 @@ if (noffdiag >= 2) acdfft(min(noffdiag, 2), 3, :) = cmplx(0.0_kpr, -1.5_kpr * (a
 !     )
 do ifft = 0, min(2, noffdiag)
   acdfft(ifft, 4, :) = cmplx(acdprofile(3, :), 0.0_kpr, kpr)
-enddo
+end do
 acdfft(0, 4, :) = acdfft(0, 4, :) * ( &
   acdprofile(4, :) * (1.0_kpr + (acdprofile(1, :) * aminor)**2 * (3.0_kpr - 2.0_kpr / acdprofile(2, :)**2)) &
   + 1.0_kpr + (acdprofile(1, :) * aminor)**2 * (0.5_kpr - 1.0_kpr / acdprofile(2, :)**2) &
@@ -279,7 +279,7 @@ if (noffdiag >= 2) acdfft(min(noffdiag, 2), 4, :) = acdfft(min(noffdiag, 2), 4, 
 do ifft = 0, min(3, noffdiag)
   acdfft(ifft, 5, :) = cmplx(acdprofile(4, :) * (1.0_kpr - (acdprofile(1, :) * aminor)**2) &
     / acdprofile(3, :) * (acdprofile(1, :) * aminor)**2, 0.0_kpr, kpr)
-enddo
+end do
 acdfft(0, 5, :) = acdfft(0, 5, :) * 2.0_kpr / (acdprofile(4, :) + 1.0_kpr)
 if (noffdiag >= 1) acdfft(min(noffdiag, 1), 5, :) = acdfft(min(noffdiag, 1), 5, :) &
   * (acdprofile(1, :) * aminor) * (acdprofile(4, :) + 2.0_kpr) / (acdprofile(4, :) + 1.0_kpr)**2
@@ -346,7 +346,7 @@ if (mype == 0) then
     write (*, "(a)") trim(adjustl(msg))
     write (msg, *) "[alcon_eqdata_load_alcondat] Info: nfftdata_alcondat = ", nfftdata_alcondat
     write (*, "(a)") trim(adjustl(msg))
-  endif
+  end if
   if (nprofiledata_alcondat /= nprofiledata .or. nfftdata_alcondat /= nfftdata) then
     iacerr = 1
   else
@@ -354,9 +354,9 @@ if (mype == 0) then
     allocate (acdfft_alcondat((1 + nfft_alcondat) * nfftdata * nrad_alcondat))
     read (falcondat, *) acdprofile_alcondat
     read (falcondat, *) acdfft_alcondat
-  endif
+  end if
   close (falcondat)
-endif
+end if
 intbuf(1) = iacerr
 intbuf(2) = nrad_alcondat
 intbuf(3) = nfft_alcondat
@@ -368,11 +368,11 @@ nrad_alcondat = intbuf(2)
 nfft_alcondat = intbuf(3)
 if (iacerr > 0) then
   return
-endif
+end if
 if (mype /= 0) then
   allocate (acdprofile_alcondat(nprofiledata * nrad_alcondat))
   allocate (acdfft_alcondat((1 + nfft_alcondat) * nfftdata * nrad_alcondat))
-endif
+end if
 ! broadcast acdprofile_alcondat and acdfft_alcondat
 call MPI_Bcast(acdprofile_alcondat, nprofiledata * nrad_alcondat, MPIU_REAL, 0, MPI_COMM_WORLD, ierr)
 CHKERRQ(ierr)
@@ -398,11 +398,11 @@ do iprofile = 2, nprofiledata
     acdprofile_alcondat(iprofile : nprofiledata * nrad_alcondat : nprofiledata), &
     d2profile(:), acdprofile(1, :), acdprofile(iprofile, :) &
   )
-enddo
+end do
 ! direct copy (for debug only; if use, make sure nrad == nrad_alcondat)
 !do iprofile = 1, nprofiledata
 !  acdprofile(iprofile, :) = acdprofile_alcondat(iprofile : nprofiledata * nrad_alcondat : nprofiledata)
-!enddo
+!end do
 
 ! calculate acdfft 
 ! interpolate using acdfft_alcondat
@@ -422,8 +422,8 @@ do ifft = 0, min(nfft_alcondat, noffdiag)
         : (nfft_alcondat + 1) * nfftdata * nrad_alcondat : (nfft_alcondat + 1) * nfftdata &
       ), d2fft(:), acdprofile(1, :), acdfft(ifft, ifftdata, :) &
     )
-  enddo
-enddo
+  end do
+end do
 ! direct copy (for debug only; if use, make sure nrad == nrad_alcondat)
 !do ifft = 0, min(nfft_alcondat, noffdiag)
 !  do ifftdata = 1, nfftdata
@@ -431,8 +431,8 @@ enddo
 !      (ifft + 1) + (nfft_alcondat + 1) * (ifftdata - 1) &
 !      : (nfft_alcondat + 1) * nfftdata * nrad_alcondat : (nfft_alcondat + 1) * nfftdata &
 !    )
-!  enddo
-!enddo
+!  end do
+!end do
 if (noffdiag > nfft_alcondat) then
   call PetscPrintf(MPI_COMM_WORLD, "[alcon_eqdata_load_alcondat] Warning: nfft_alcondat < noffdiag, ", ierr)
   CHKERRQ(ierr)
@@ -447,7 +447,7 @@ if (noffdiag > nfft_alcondat) then
   call PetscPrintf(MPI_COMM_WORLD, "elements of the transformed array).\n", ierr)
   CHKERRQ(ierr)
   acdfft(nfft_alcondat + 1 : noffdiag, :, :) = (0.0_kpr, 0.0_kpr)
-endif
+end if
 
 call cspline_final
 deallocate(acdprofile_alcondat, acdfft_alcondat, d2profile, d2fft)

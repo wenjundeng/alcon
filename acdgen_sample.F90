@@ -128,7 +128,7 @@ do irad = 1, nrad
     lsamp(ipol) = ((acdprofile(4, irad) + b(psi, theta)**2) * acdprofile(3, irad) &
       / b(psi, theta)**4) * (b0 / r0)
     nsamp(ipol) = (acdprofile(4, irad) * ksamp(ipol)**2 / lsamp(ipol)) / (b0 * r0)
-  enddo
+  end do
   ! the "/ npol" factors in the following lines are for normalization.
   ! there may be an additional factor needed to be divided by, such as 2 * pi.
   ! check your fftr1d function, make sure after normalization, performing it
@@ -143,7 +143,7 @@ do irad = 1, nrad
   acdfft(0 : nfft, 4, irad) = sampfft(0 : nfft) / npol
   sampfft = fftr1d(nsamp)
   acdfft(0 : nfft, 5, irad) = sampfft(0 : nfft) / npol
-enddo
+end do
 
 ! note that if in a parallel code, the writing part should be executed by only
 !   one process.

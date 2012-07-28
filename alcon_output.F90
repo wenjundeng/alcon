@@ -48,13 +48,13 @@ if (withpath) then
   path = "output/"
 else
   path = ""
-endif
+end if
 
 if (withext) then
   ext = ".dat"
 else
   ext = ""
-endif
+end if
 
 if (finitebeta > 2) then
   if (im < m2 - m1 + 1) then
@@ -62,21 +62,21 @@ if (finitebeta > 2) then
       write (alcon_output_filename, '(a, "a_n", i3.3, "m_", i2.2, a)') trim(path), n, abs(m1 + im), trim(ext)
     else
       write (alcon_output_filename, '(a, "a_n", i3.3, "m", i3.3, a)') trim(path), n, m1 + im, trim(ext)
-    endif
+    end if
   else
     if (m1 + im - (m2 - m1 + 1) < 0) then
       write (alcon_output_filename, '(a, "s_n", i3.3, "m_", i2.2, a)') trim(path), n, abs(m1 + im - (m2 - m1 + 1)), trim(ext)
     else
       write (alcon_output_filename, '(a, "s_n", i3.3, "m", i3.3, a)') trim(path), n, m1 + im - (m2 - m1 + 1), trim(ext)
-    endif
-  endif
+    end if
+  end if
 else
   if (m1 + im < 0) then
     write (alcon_output_filename, '(a, "n", i3.3, "m_", i2.2, a)') trim(path), n, abs(m1 + im), trim(ext)
   else
     write (alcon_output_filename, '(a, "n", i3.3, "m", i3.3, a)') trim(path), n, m1 + im, trim(ext)
-  endif
-endif
+  end if
+end if
 end function alcon_output_filename
 
 
@@ -108,7 +108,7 @@ character(400) :: msg
 if (verbosity >= 2) then
   call PetscPrintf(comm_radhead, "[alcon_output_data] Info: preparing data about file structures...\n", ierr)
   CHKERRQ(ierr)
-endif
+end if
 call MPI_Comm_rank(comm_radhead, mype, ierr)
 CHKERRQ(ierr)
 
@@ -116,7 +116,7 @@ if (finitebeta > 2) then
   nm = (m2 - m1 + 1) * 2
 else
   nm = m2 - m1 + 1
-endif
+end if
 
 call MPI_Allreduce(aco_ndata, aco_ndata_total, nm, MPIU_INTEGER, MPI_SUM, comm_radhead, ierr)
 CHKERRQ(ierr)
@@ -127,17 +127,17 @@ if (mype > 0) then
   aco_ndata_lower = intbuf
 else
   aco_ndata_lower = 0
-endif
+end if
 if (mype < ndom_rad - 1) then
   intbuf = aco_ndata_lower + aco_ndata
   call MPI_Send(intbuf, nm, MPIU_INTEGER, mype + 1, tag, comm_radhead, ierr)
   CHKERRQ(ierr)
-endif
+end if
 
 if (verbosity >= 2) then
   call PetscPrintf(comm_radhead, "[alcon_output_data] Info: writing to files...\n", ierr)
   CHKERRQ(ierr)
-endif
+end if
 
 do im = 0, nm - 1
   if (aco_ndata_total(im) == 0) cycle
@@ -145,7 +145,7 @@ do im = 0, nm - 1
     write (msg, "(3a)") "[alcon_output_data] Info: opening file ", trim(alcon_output_filename(im, PETSC_TRUE, PETSC_TRUE)), " ...\n"
     call PetscPrintf(comm_radhead, trim(msg), ierr)
     CHKERRQ(ierr)
-  endif
+  end if
   call MPI_File_open(comm_radhead, trim(alcon_output_filename(im, PETSC_TRUE, PETSC_TRUE)), &
     MPI_MODE_WRONLY + MPI_MODE_CREATE, MPI_INFO_NULL, fdat, ierr)
   CHKERRQ(ierr)
@@ -158,7 +158,7 @@ do im = 0, nm - 1
     write (msg, *) "[alcon_output_data] Info: mype = ", mype, &
       ", aco_ndata_lower(im) = ", aco_ndata_lower(im), ", disp = ", disp
     write (*, "(a)") trim(adjustl(msg))
-  endif
+  end if
   call MPI_File_set_view(fdat, disp, MPI_CHARACTER, MPI_CHARACTER, 'native', MPI_INFO_NULL, ierr)
   CHKERRQ(ierr)
   if (verbosity >= 2) then
@@ -166,26 +166,26 @@ do im = 0, nm - 1
       trim(alcon_output_filename(im, PETSC_TRUE, PETSC_TRUE)), " ...\n"
     call PetscPrintf(comm_radhead, trim(msg), ierr)
     CHKERRQ(ierr)
-  endif
+  end if
   do idata = 1, aco_ndata(im)
     write (charbuf, "(2e26.17e3, a)") aco_data(im, :, idata), char(10)
     call MPI_File_write(fdat, charbuf, nbyteperei, MPI_CHARACTER, MPI_STATUS_IGNORE, ierr)
     CHKERRQ(ierr)
-  enddo
+  end do
   if (verbosity >= 2) then
     write (msg, "(3a)") "[alcon_output_data] Info: closing file ", &
       trim(alcon_output_filename(im, PETSC_TRUE, PETSC_TRUE)), " ...\n"
     call PetscPrintf(comm_radhead, trim(msg), ierr)
     CHKERRQ(ierr)
-  endif
+  end if
   call MPI_File_close(fdat, ierr)
   CHKERRQ(ierr)
-enddo
+end do
 
 if (verbosity >= 2) then
   call PetscPrintf(comm_radhead, "[alcon_output_data] Info: has successfully written to files...\n", ierr)
   CHKERRQ(ierr)
-endif
+end if
 
 end subroutine alcon_output_data
 
@@ -219,7 +219,7 @@ CHKERRQ(ierr)
 
 if (mype == 0) then
   call alcon_output_plotscript(ndata_sum)
-endif
+end if
 
 end subroutine alcon_output_extra
 
@@ -252,18 +252,18 @@ do im = m2 - m1, 0, -1
   if (ndata(im) > 0) then
     imlast1 = im
     exit
-  endif
-enddo
+  end if
+end do
 if (finitebeta > 2) then
   do im = (m2 - m1 + 1) * 2 - 1, m2 - m1 + 1, -1
     if (ndata(im) > 0) then
       imlast2 = im
       exit
-    endif
-  enddo
+    end if
+  end do
 else
   imlast2 = imlast1
-endif
+end if
 
 select case (outformat)
   case (10) ! MATLAB
@@ -274,8 +274,8 @@ select case (outformat)
     do im = 0, imlast2
       if (ndata(im) > 0) then
         write (fmatlab, "(4a)") "load '", trim(alcon_output_filename(im, PETSC_FALSE, PETSC_TRUE)), "'"
-      endif
-    enddo
+      end if
+    end do
     write (fmatlab, "(a)") ""
     write (fmatlab, "(a)") "colortable=zeros(15,3);"
     write (fmatlab, "(a)") "colortable( 1,:)=[0.75 0.75 0.0 ];"
@@ -302,8 +302,8 @@ select case (outformat)
           write (fmatlab, "(5a)") "scatter(", trim(alcon_output_filename(im, PETSC_FALSE, PETSC_FALSE)), &
             "(:,1),", trim(alcon_output_filename(im, PETSC_FALSE, PETSC_FALSE)), &
             "(:,2),1,colortable( 2,:),'.')"
-        endif
-      enddo
+        end if
+      end do
 
       do im = (m2 - m1 + 1) + out_label_m1 - m1, min((m2 - m1 + 1) + out_label_m1 - m1 + nlabeled - 1, imlast2)
         if (ndata(im) > 0) then
@@ -311,25 +311,25 @@ select case (outformat)
           write (fmatlab, "(7a)") "scatter(", trim(alcon_output_filename(im, PETSC_FALSE, PETSC_FALSE)), &
             "(:,1),", trim(alcon_output_filename(im, PETSC_FALSE, PETSC_FALSE)), &
             "(:,2),1,colortable(", linestyle, ",:),'.')"
-        endif
-      enddo
+        end if
+      end do
 
       do im = (m2 - m1 + 1) + out_label_m1 - m1 + nlabeled, imlast2
         if (ndata(im) > 0) then
           write (fmatlab, "(5a)") "scatter(", trim(alcon_output_filename(im, PETSC_FALSE, PETSC_FALSE)), &
             "(:,1),", trim(alcon_output_filename(im, PETSC_FALSE, PETSC_FALSE)), &
             "(:,2),1,colortable( 2,:),'.')"
-        endif
-      enddo
-    endif ! (finitebeta > 2)
+        end if
+      end do
+    end if ! (finitebeta > 2)
 
     do im = 0, (out_label_m1 - m1) - 1
       if (ndata(im) > 0) then
         write (fmatlab, "(5a)") "scatter(", trim(alcon_output_filename(im, PETSC_FALSE, PETSC_FALSE)), &
           "(:,1),", trim(alcon_output_filename(im, PETSC_FALSE, PETSC_FALSE)), &
           "(:,2),20,colortable( 1,:),'filled')"
-      endif
-    enddo
+      end if
+    end do
 
     i = 1
     do im = out_label_m1 - m1, min(out_label_m1 - m1 + nlabeled - 1, imlast1)
@@ -341,16 +341,16 @@ select case (outformat)
           "(:,1),", trim(alcon_output_filename(im, PETSC_FALSE, PETSC_FALSE)), &
           "(:,2),20,colortable(", linestyle, ",:),'filled');"
         i = i + 1
-      endif
-    enddo
+      end if
+    end do
 
     do im = out_label_m1 - m1 + nlabeled, imlast1
       if (ndata(im) > 0) then
         write (fmatlab, "(5a)") "scatter(", trim(alcon_output_filename(im, PETSC_FALSE, PETSC_FALSE)), &
           "(:,1),", trim(alcon_output_filename(im, PETSC_FALSE, PETSC_FALSE)), &
           "(:,2),20,colortable( 1,:),'filled')"
-      endif
-    enddo
+      end if
+    end do
     write (fmatlab, "(a)") ""
 
     ! generate legend
@@ -359,8 +359,8 @@ select case (outformat)
       if (ndata(im) > 0) then
         write (string_m, "(i3)") im + m1
         write (fmatlab, "(3a)") "'m=", trim(adjustl(string_m)), "', ..."
-      endif
-    enddo
+      end if
+    end do
     write (fmatlab, "(a)") "'Location', 'NorthEastOutside')"
     ! set labels
     write (fmatlab, "(3a)") "xlabel('", out_xlabel, "')"
@@ -371,7 +371,7 @@ select case (outformat)
     else
       write (fmatlab, "(a, 4f20.16, a)") "axis([", out_rad1, out_rad2, 0.0_kpr, 1.0_kpr, "])"
       write (fmatlab, "(a)") "axis 'auto y'"
-    endif
+    end if
 
     write (fmatlab, "(a)") ""
     close (fmatlab)
@@ -428,7 +428,7 @@ select case (outformat)
     write (fidl, "(a)") "lun = 124"
     if (omegacutoff <= 0.0_kpr) then
       write (fidl, "(a, i3, a)") "arrayomegamax = dblarr(", imlast2 + 1, ")"
-    endif
+    end if
     do im = 0, imlast2
       if (ndata(im) > 0) then
         write (fidl, "(3a)") "nlines = file_lines('", &
@@ -442,9 +442,9 @@ select case (outformat)
         if (omegacutoff <= 0.0_kpr) then
           write (fidl, "(5a)") "arrayomegamax(", trim(adjustl(string_mindex)),") = max(data", &
             trim(adjustl(string_mindex)), "(1, *))"
-        endif
-      endif
-    enddo
+        end if
+      end if
+    end do
     write (fidl, "(a)") ""
     write (fidl, "(a)") "t = findgen(17) * (2.0 * !pi / 16.0)"
     write (fidl, "(a)") "usersym, 0.3 * cos(t), 0.3 * sin(t), /fill"
@@ -458,7 +458,7 @@ select case (outformat)
     else
       write (fidl, "(a)") "omegamax = max(arrayomegamax)"
       write (linetrailing, "(a)") "yrange = [0.0, omegamax], "
-    endif
+    end if
     write (fidl, "(a, f20.16, a, f20.16, 7a)") "plot, [-0.1], [-0.1], xrange = [", &
       out_rad1, ", ", out_rad2, &
       "], ", trim(linetrailing), "xtitle = '", out_xlabel, "', ytitle = '", &
@@ -469,8 +469,8 @@ select case (outformat)
           write (string_mindex, "(i3)") im
           write (fidl, "(5a)") "oplot, data", trim(adjustl(string_mindex)), "(0, *), data", &
             trim(adjustl(string_mindex)), "(1, *), color = colortable( 1)"
-        endif
-      enddo
+        end if
+      end do
 
       do im = (m2 - m1 + 1) + out_label_m1 - m1, min((m2 - m1 + 1) + out_label_m1 - m1 + nlabeled - 1, imlast2)
         if (ndata(im) > 0) then
@@ -478,25 +478,25 @@ select case (outformat)
           write (linestyle, "(i2)") 3 + im - ((m2 - m1 + 1) + out_label_m1 - m1)
           write (fidl, "(7a)") "oplot, data", trim(adjustl(string_mindex)), "(0, *), data", &
             trim(adjustl(string_mindex)), "(1, *), color = colortable(", trim(linestyle), ")"
-        endif
-      enddo
+        end if
+      end do
 
       do im = (m2 - m1 + 1) + out_label_m1 - m1 + nlabeled, imlast2
         if (ndata(im) > 0) then
           write (string_mindex, "(i3)") im
           write (fidl, "(5a)") "oplot, data", trim(adjustl(string_mindex)), "(0, *), data", &
             trim(adjustl(string_mindex)), "(1, *), color = colortable( 1)"
-        endif
-      enddo
-    endif
+        end if
+      end do
+    end if
 
     do im = 0, min((out_label_m1 - m1) - 1, imlast1)
       if (ndata(im) > 0) then
         write (string_mindex, "(i3)") im
         write (fidl, "(5a)") "oplot, data", trim(adjustl(string_mindex)), "(0, *), data", &
           trim(adjustl(string_mindex)), "(1, *), color = colortable( 0), symsize = 3.0"
-      endif
-    enddo
+      end if
+    end do
 
     do im = out_label_m1 - m1, min(out_label_m1 - m1 + nlabeled - 1, imlast1)
       if (ndata(im) > 0) then
@@ -504,16 +504,16 @@ select case (outformat)
         write (linestyle, "(i2)") 3 + im - (out_label_m1 - m1)
         write (fidl, "(7a)") "oplot, data", trim(adjustl(string_mindex)), "(0, *), data", &
           trim(adjustl(string_mindex)), "(1, *), color = colortable(", trim(linestyle), "), symsize = 3.0"
-      endif
-    enddo
+      end if
+    end do
 
     do im = out_label_m1 - m1 + nlabeled, imlast1
       if (ndata(im) > 0) then
         write (string_mindex, "(i3)") im
         write (fidl, "(5a)") "oplot, data", trim(adjustl(string_mindex)), "(0, *), data", &
           trim(adjustl(string_mindex)), "(1, *), color = colortable( 0), symsize = 3.0"
-      endif
-    enddo
+      end if
+    end do
     write (fidl, "(a)") ""
 
     write (fidl, "(a)") "; put label at the data average position"
@@ -525,8 +525,8 @@ select case (outformat)
         write (fidl, "(9a)") "xyouts, mean(data", trim(adjustl(string_mindex)), &
           "(0, *)), mean(data", trim(adjustl(string_mindex)), "(1, *)), 'm=", &
           trim(adjustl(string_m)), "', color = colortable(", linestyle, ")"
-      endif
-    enddo
+      end if
+    end do
     write (fidl, "(a)") ""
     write (fidl, "(a)") "if keyword_set(eps) then begin"
     write (fidl, "(2a)") char(9), "device, /close"
@@ -577,7 +577,7 @@ select case (outformat)
         write (fgp, "(a)") "set style line 52 lc rgbcolor '#0080ff' pt 7 ps 0.2"
         write (fgp, "(a)") "set style line 53 lc 2 pt 7 ps 0.2"
         write (fgp, "(a)") "set style line 54 lc 5 pt 7 ps 0.2"
-      endif
+      end if
       write (fgp, "(3a)") "set xlabel '", out_xlabel, "' offset 0, 1"
       write (fgp, "(3a)") "set ylabel '", out_ylabel, "' offset 2, 0"
       write (fgp, "(a)") "set xtics offset 0, 0.4"
@@ -614,16 +614,16 @@ select case (outformat)
         write (fgp, "(a)") "set style line 52 lc rgbcolor '#000080' pt 9 ps 0.001"
         write (fgp, "(a)") "set style line 53 lc rgbcolor '#990099' pt 9 ps 0.001"
         write (fgp, "(a)") "set style line 54 lc rgbcolor '#0080ff' pt 9 ps 0.001"
-      endif
+      end if
       write (fgp, "(3a)") "set xlabel '", out_xlabel, "' offset 0, 1.1"
       write (fgp, "(3a)") "set ylabel '", out_ylabel, "' offset 2.5, 0"
       write (fgp, "(a)") "set xtics offset 0, 0.5"
       write (fgp, "(a)") "set ytics offset 0.5, 0"
-    endif ! else of if (outformat == 30 .or. outformat == 31)
+    end if ! else of if (outformat == 30 .or. outformat == 31)
     write (fgp, "(a, f20.16, a, f20.16, a)") "set xrange [", out_rad1, ":", out_rad2, "]"
     if (omegacutoff > 0.0_kpr) then
       write (fgp, "(a, f20.16, a)") "set yrange [0:", omegacutoff, "]"
-    endif
+    end if
     write (fgp, "(a)") "set key outside"
     write (fgp, "(a)") "set key textcolor rgb variable"
     write (fgp, "(a)") "plot \"
@@ -632,24 +632,24 @@ select case (outformat)
         if (ndata(im) > 0) then
           write (fgp, "(3a)") "'", trim(alcon_output_filename(im, PETSC_FALSE, PETSC_TRUE)), &
             "' notitle with points ls 41, \"
-        endif
-      enddo
+        end if
+      end do
 
       do im = (m2 - m1 + 1) + out_label_m1 - m1, min((m2 - m1 + 1) + out_label_m1 - m1 + nlabeled - 1, imlast2)
         if (ndata(im) > 0) then
           write (linestyle, '(i2)') min(42 + im - ((m2 - m1 + 1) + out_label_m1 - m1), 42 + ncolor - 1)
           write (fgp, "(5a)") "'", trim(alcon_output_filename(im, PETSC_FALSE, PETSC_TRUE)), &
             "' notitle with points ls ", linestyle, ", \"
-        endif
-      enddo
+        end if
+      end do
 
       do im = (m2 - m1 + 1) + out_label_m1 - m1 + nlabeled, imlast2
         if (ndata(im) > 0) then
           write (fgp, "(3a)") "'", trim(alcon_output_filename(im, PETSC_FALSE, PETSC_TRUE)), &
             "' notitle with points ls 41, \"
-        endif
-      enddo
-    endif ! (finitebeta > 2)
+        end if
+      end do
+    end if ! (finitebeta > 2)
 
     do im = 0, min((out_label_m1 - m1) - 1, imlast1)
       if (ndata(im) > 0) then
@@ -657,11 +657,11 @@ select case (outformat)
           linetrailing = ", \"
         else
           linetrailing = ""
-        endif
+        end if
         write (fgp, "(4a)") "'", trim(alcon_output_filename(im, PETSC_FALSE, PETSC_TRUE)), &
           "' notitle with points ls 11", trim(linetrailing)
-      endif
-    enddo
+      end if
+    end do
 
     do im = out_label_m1 - m1, min(out_label_m1 - m1 + nlabeled - 1, imlast1)
       if (ndata(im) > 0) then
@@ -669,14 +669,14 @@ select case (outformat)
           linetrailing = ", \"
         else
           linetrailing = ""
-        endif
+        end if
         write (linestyle, '(i2)') min(12 + im - (out_label_m1 - m1), 12 + ncolor - 1)
         write (string_m, "(i3)") im + m1
         write (fgp, "(7a)") "'", trim(alcon_output_filename(im, PETSC_FALSE, PETSC_TRUE)), &
           "' title 'm = ", trim(adjustl(string_m)), &
           "' with points ls ", linestyle, trim(linetrailing)
-      endif
-    enddo
+      end if
+    end do
 
     do im = out_label_m1 - m1 + nlabeled, imlast1
       if (ndata(im) > 0) then
@@ -684,11 +684,11 @@ select case (outformat)
           linetrailing = ", \"
         else
           linetrailing = ""
-        endif
+        end if
         write (fgp, "(4a)") "'", trim(alcon_output_filename(im, PETSC_FALSE, PETSC_TRUE)), &
           "' notitle with points ls 11", trim(linetrailing)
-      endif
-    enddo
+      end if
+    end do
 
     write (fgp, "(a)") ""
 
@@ -715,35 +715,35 @@ select case (outformat)
       write (fmakefile, "(a)") ""
       write (fmakefile, "(a)") "alcon.png : alcon.eps"
       write (fmakefile, "(2a)") char(9), "convert -density 400 -flatten $< $@"
-    endif
+    end if
     write (fmakefile, "(a)") ""
     if (outformat == 30 .or. outformat == 32) then
       if (outformat == 30) then
         write (fmakefile, "(a)") "alcon.eps : alcon.gp \"
       else
         write (fmakefile, "(a)") "alcon.mp : alcon.gp \"
-      endif
+      end if
       do im = 0, imlast2
         if (ndata(im) > 0) then
           if (im < imlast2) then
             linetrailing = " \"
           else
             linetrailing = ""
-          endif
+          end if
           write (fmakefile, "(3a)") " ", trim(alcon_output_filename(im, PETSC_FALSE, PETSC_TRUE)), trim(linetrailing)
-        endif
-      enddo
+        end if
+      end do
     else ! implying outformat == 31 or 33
       if (outformat == 31) then
         write (fmakefile, "(a)") "alcon.eps : alcon.gp alcon.d"
       else ! implying outformat == 33
         write (fmakefile, "(a)") "alcon.mp : alcon.gp alcon.d"
-      endif
-    endif
+      end if
+    end if
     write (fmakefile, "(2a)") char(9), "gnuplot $<"
     if (outformat == 33) then
       write (fmakefile, "(2a)") char(9), "gpmp2latexmp $@"
-    endif
+    end if
     write (fmakefile, "(a)") ""
     if (outformat == 31 .or. outformat == 33) then
       write (fmakefile, "(a)") "alcon.d : alcon.gp"
@@ -751,13 +751,13 @@ select case (outformat)
       write (fmakefile, "(a)") ""
       write (fmakefile, "(a)") "-include alcon.d"
       write (fmakefile, "(a)") ""
-    endif
+    end if
     write (fmakefile, "(a)") "clean :"
     if (outformat == 31 .or. outformat == 33) then
       linetrailing = " alcon.d"
     else
       linetrailing = ""
-    endif
+    end if
     if (outformat == 30 .or. outformat == 31) then
       write (fmakefile, "(3a)") char(9), "rm -f alcon.eps", trim(linetrailing)
     else
@@ -767,13 +767,13 @@ select case (outformat)
       write (fmakefile, "(a)") ""
       write (fmakefile, "(a)") "cleanall : clean"
       write (fmakefile, "(2a)") char(9), "rm -f alcon.mps alcon.eps alcon.png"
-    endif
+    end if
     write (fmakefile, "(a)") ""
 
     close (fmakefile)
   case default
     return
-endselect
+end select
 end subroutine alcon_output_plotscript
 
 end module alcon_output

@@ -56,7 +56,7 @@ else
   CHKERRQ(ierr)
   call MatMPIAIJSetPreallocation(acs_matA, noffdiag * 2 + 1, PETSC_NULL_INTEGER, noffdiag, PETSC_NULL_INTEGER, ierr)
   CHKERRQ(ierr)
-endif
+end if
 
 ! initialize acs_matB (duplicate from acs_matA)
 ! MatDuplicate does not work for unassembled matrix
@@ -78,7 +78,7 @@ else
   CHKERRQ(ierr)
   call MatMPIAIJSetPreallocation(acs_matB, noffdiag * 2 + 1, PETSC_NULL_INTEGER, noffdiag, PETSC_NULL_INTEGER, ierr)
   CHKERRQ(ierr)
-endif
+end if
 
 ! initialize acs_vecEigenRe and acs_vecEigenIm
 call VecCreate(acs_comm, acs_vecEigenRe, ierr)
@@ -89,7 +89,7 @@ if (finitebeta > 2) then
 else
   call VecSetSizes(acs_vecEigenRe, PETSC_DECIDE, m2 - m1 + 1, ierr)
   CHKERRQ(ierr)
-endif
+end if
 call VecSetFromOptions(acs_vecEigenRe, ierr)
 CHKERRQ(ierr)
 call VecDuplicate(acs_vecEigenRe, acs_vecEigenIm, ierr)
@@ -163,7 +163,7 @@ if (verbosity >= 2 .and. irad == 1) then
   !flush(6)
   !call MPI_Barrier(acs_comm, ierr)
   !CHKERRQ(ierr)
-endif
+end if
 do i = ilow, ihigh - 1
   if (finitebeta == 2) then
     ! beta * G^dagger * M *G part in acs_matA
@@ -181,9 +181,9 @@ do i = ilow, ihigh - 1
         values(nindex) = conjg(acdfft(i - j, 4, irad))
       else
         values(nindex) = acdfft(j - i, 4, irad)
-      endif
+      end if
       nindex = nindex + 1
-    enddo
+    end do
     call MatSetValues(acs_matB, 1, i, nindex, indices, values, INSERT_VALUES, ierr)
   else
     nindex = 0
@@ -195,7 +195,7 @@ do i = ilow, ihigh - 1
           values(nindex) = conjg(acdfft(i - j, 1, irad))
         else
           values(nindex) = acdfft(j - i, 1, irad)
-        endif
+        end if
         values(nindex) = values(nindex) &
           * (real(n, kpr) * acdprofile(2, irad) - real(m1 + i, kpr)) &
           * (real(n, kpr) * acdprofile(2, irad) - real(m1 + j, kpr))
@@ -206,8 +206,8 @@ do i = ilow, ihigh - 1
             values(nindex) = values(nindex) + conjg(acdfft(i - j, 5, irad))
           else
             values(nindex) = values(nindex) + acdfft(j - i, 5, irad)
-          endif
-        endif
+          end if
+        end if
         nindex = nindex + 1
 
         ! -beta# * K part in acs_matA
@@ -217,10 +217,10 @@ do i = ilow, ihigh - 1
             values(nindex) = -acdprofile(4, irad) * conjg(acdfft(i - j, 3, irad))
           else
             values(nindex) = -acdprofile(4, irad) * acdfft(j - i, 3, irad)
-          endif
+          end if
           nindex = nindex + 1
-        endif
-      enddo
+        end if
+      end do
       call MatSetValues(acs_matA, 1, i, nindex, indices, values, INSERT_VALUES, ierr)
       CHKERRQ(ierr)
 
@@ -232,9 +232,9 @@ do i = ilow, ihigh - 1
           values(nindex) = conjg(acdfft(i - j, 2, irad))
         else
           values(nindex) = acdfft(j - i, 2, irad)
-        endif
+        end if
         nindex = nindex + 1
-      enddo
+      end do
       call MatSetValues(acs_matB, 1, i, nindex, indices, values, INSERT_VALUES, ierr)
       CHKERRQ(ierr)
     else ! (i < m2 - m1 + 1)
@@ -256,7 +256,7 @@ do i = ilow, ihigh - 1
           values(nindex) = conjg(acdfft(i - j, 3, irad))
         else
           values(nindex) = acdfft(j - i, 3, irad)
-        endif
+        end if
         nindex = nindex + 1
 
         ! L part in acs_matB
@@ -265,14 +265,14 @@ do i = ilow, ihigh - 1
           values(nindex) = conjg(acdfft(i - j, 4, irad))
         else
           values(nindex) = acdfft(j - i, 4, irad)
-        endif
+        end if
         nindex = nindex + 1
-      enddo
+      end do
       call MatSetValues(acs_matB, 1, i, nindex, indices, values, INSERT_VALUES, ierr)
       CHKERRQ(ierr)
-    endif ! else of (i < m2 - m1 + 1)
-  endif ! else of (finitebeta == 2)
-enddo ! i = ilow, ihigh
+    end if ! else of (i < m2 - m1 + 1)
+  end if ! else of (finitebeta == 2)
+end do ! i = ilow, ihigh
 call MatAssemblyBegin(acs_matA, MAT_FINAL_ASSEMBLY, ierr)
 CHKERRQ(ierr)
 call MatAssemblyBegin(acs_matB, MAT_FINAL_ASSEMBLY, ierr)
@@ -325,7 +325,7 @@ elseif (finitebeta == 2) then
 else
   call EPSSetDimensions(epsAlcon, nev, PETSC_DECIDE, PETSC_DECIDE, ierr)
   CHKERRQ(ierr)
-endif
+end if
 call EPSSetOperators(epsAlcon, acs_matA, acs_matB, ierr)
 CHKERRQ(ierr)
 
@@ -366,7 +366,7 @@ if (verbosity >= 3) then
   write (msg, *) "[alcon_solver_solve] Info: stopping condition: tol = ", tol, ", maxit = ", maxit, "\n"
   call PetscPrintf(MPI_COMM_WORLD, trim(adjustl(msg)), ierr)
   CHKERRQ(ierr)
-endif
+end if
 
 call EPSGetConverged(epsAlcon, nconv, ierr)
 CHKERRQ(ierr)
@@ -374,7 +374,7 @@ if (verbosity >= 2) then
   write (msg, *) "[alcon_solver_solve] Info: # of converged solutions: nconv = ", nconv, "\n"
   call PetscPrintf(MPI_COMM_WORLD, trim(adjustl(msg)), ierr)
   CHKERRQ(ierr)
-endif
+end if
 ! analyze converged solutions
 do iconv = 0, nconv - 1
   call EPSGetEigenpair(epsAlcon, iconv, evalre, evalim, acs_vecEigenRe, acs_vecEigenIm, ierr)
@@ -384,7 +384,7 @@ do iconv = 0, nconv - 1
     CHKERRQ(ierr)
     call VecView(acs_vecEigenIm, PETSC_VIEWER_STDOUT_WORLD, ierr)
     CHKERRQ(ierr)
-  endif
+  end if
   ! the absolute value of omega's imaginary part has to be sufficiently small
   if (abs(aimag(sqrt(evalre))) < real(sqrt(evalre), kpr) * imagrealratiocutoff) then
     omegarescaled = real(sqrt(evalre / rho_M), kpr) * omegascale
@@ -406,7 +406,7 @@ do iconv = 0, nconv - 1
         ! too complicated to inform all other processes and terminate nicely, so just MPI_Abort
         call MPI_Abort(MPI_COMM_WORLD, 1, ierr)
         CHKERRQ(ierr)
-      endif
+      end if
       aco_data(ieivecabsmax, 1, aco_ndata(ieivecabsmax)) = rad
       aco_data(ieivecabsmax, 2, aco_ndata(ieivecabsmax)) = omegarescaled
 
@@ -421,13 +421,13 @@ do iconv = 0, nconv - 1
           write (msg, *) "[alcon_solver] Info: corresponding m: ", m1 + ieivecabsmax, "\n"
         else
           write (msg, *) "[alcon_solver] Info: corresponding m: ", m1 + ieivecabsmax - (m2 - m1 + 1), "\n"
-        endif
+        end if
         call PetscPrintf(MPI_COMM_WORLD, trim(adjustl(msg)), ierr)
         CHKERRQ(ierr)
-      endif
-    endif ! (omegacutoff < 0.0_kpr .or. omegarescaled < omegacutoff)
-  endif ! (abs(aimag(sqrt(evalre))) < real(sqrt(evalre), kpr) * imagrealratiocutoff)
-enddo ! do i = 0, nconv - 1
+      end if
+    end if ! (omegacutoff < 0.0_kpr .or. omegarescaled < omegacutoff)
+  end if ! (abs(aimag(sqrt(evalre))) < real(sqrt(evalre), kpr) * imagrealratiocutoff)
+end do ! do i = 0, nconv - 1
 ! destroy epsAlcon
 call EPSDestroy(epsAlcon, ierr)
 CHKERRQ(ierr)

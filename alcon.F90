@@ -25,7 +25,7 @@ implicit none
 #include "finclude/petsc.h90"
 #include "finclude/slepc.h"
 
-character(25), parameter :: version = '2012-06-14 21:26:35-04:00'
+character(25), parameter :: version = '2012-07-28 17:56:17-04:00'
 
 ! indexing variables
 PetscInt :: i
@@ -60,7 +60,7 @@ call MPI_Comm_rank(MPI_COMM_WORLD, mype, ierr)
 CHKERRQ(ierr)
 if (mype == 0) then
   write (*, "(a)") "Error: ALCON requires complex version of PETSc. Please re-compiled it with complex version of PETSc."
-endif
+end if
 call MPI_Finalize(ierr)
 CHKERRQ(ierr)
 stop 1
@@ -86,7 +86,7 @@ if (verbosity >= 1) then
   CHKERRQ(ierr)
   call PetscPrintf(MPI_COMM_WORLD, "an the radial range provided by equilibrium data.\n", ierr)
   CHKERRQ(ierr)
-endif
+end if
 
 select case (eqtype)
   case (20)
@@ -102,7 +102,7 @@ select case (eqtype)
       call SlepcFinalize(ierr)
       CHKERRQ(ierr)
       stop 2
-    endif
+    end if
 
   case (40)
     iacerr = 0
@@ -115,7 +115,7 @@ select case (eqtype)
       call SlepcFinalize(ierr)
       CHKERRQ(ierr)
       stop 2
-    endif
+    end if
 
   case default
     call PetscPrintf(MPI_COMM_WORLD, "Error: undefined equilibrium type (eqtype).\n", ierr)
@@ -123,7 +123,7 @@ select case (eqtype)
     call SlepcFinalize(ierr)
     CHKERRQ(ierr)
     stop 1
-endselect
+end select
 if (verbosity >= 2) then
   call PetscPrintf(MPI_COMM_WORLD, "Diagnositc info: acdprofile(iprofile, :):", ierr)
   CHKERRQ(ierr)
@@ -134,7 +134,7 @@ if (verbosity >= 2) then
       (acdprofile(iprofile, irad), irad = max(nrad - 2, 1), nrad), "\n"
     call PetscPrintf(MPI_COMM_WORLD, trim(adjustl(msg)), ierr)
     CHKERRQ(ierr)
-  enddo
+  end do
   call PetscPrintf(MPI_COMM_WORLD, "Diagnostic info: acdfft(ifft, ifftdata, :):", ierr)
   CHKERRQ(ierr)
   do ifftdata = 1, nfftdata
@@ -145,14 +145,14 @@ if (verbosity >= 2) then
         (acdfft(ifft, ifftdata, irad), irad = max(nrad - 2, 1), nrad), "\n"
       call PetscPrintf(MPI_COMM_WORLD, trim(adjustl(msg)), ierr)
       CHKERRQ(ierr)
-    enddo
-  enddo
-endif
+    end do
+  end do
+end if
 
 if (verbosity >= 1) then
   call PetscPrintf(MPI_COMM_WORLD, "Info: initializing solver, creating PETSc and SLEPc objects...\n", ierr)
   CHKERRQ(ierr)
-endif
+end if
 
 ! radial domain and solver decomposition
 call MPI_Comm_size(MPI_COMM_WORLD, npe, ierr)
@@ -166,7 +166,7 @@ if (ndom_rad > nrad) then
   CHKERRQ(ierr)
   call PetscPrintf(MPI_COMM_WORLD, "f radial domains to # of radial grid points.", ierr)
   CHKERRQ(ierr)
-endif
+end if
 
 mydom_rad = mod(mype, ndom_rad)
 mype_solver = mype / ndom_rad
@@ -195,7 +195,7 @@ if (verbosity >= 2) then
   CHKERRQ(ierr)
   write (msg, *) "Info: mype = ", mype, "irad_low = ", irad_low, "irad_high = ", irad_high
   write (*, "(a)") trim(adjustl(msg))
-endif
+end if
 
 ! solver initialization, create PETSc and SLEPc objects
 call alcon_solver_init(comm_solver)
@@ -205,7 +205,7 @@ if (verbosity >= 1) then
   CHKERRQ(ierr)
   call PetscPrintf(MPI_COMM_WORLD, "(only the progress of the first radial domain will be shown)\n", ierr)
   CHKERRQ(ierr)
-endif
+end if
 
 if (verbosity == 1) then
   write (msg, *) "Info: solving radial grids (first radial domain total", irad_high - irad_low + 1, ")..."
@@ -213,9 +213,9 @@ if (verbosity == 1) then
   CHKERRQ(ierr)
   do iprogress = 1, 10
     progress(iprogress)  = iprogress * nrad_dom / 10
-  enddo
+  end do
   iprogress = 1
-endif
+end if
 
 ! main loop over radial grids
 do irad = irad_low, irad_high
@@ -227,12 +227,12 @@ do irad = irad_low, irad_high
       call PetscPrintf(MPI_COMM_WORLD, msg, ierr)
       CHKERRQ(ierr)
       iprogress = iprogress + 1
-    endif
+    end if
   elseif (verbosity >= 2) then
     write (msg, *) "Info: solving radial grid: ", irad, "/", nrad_dom, "\n"
     call PetscPrintf(MPI_COMM_WORLD, trim(adjustl(msg)), ierr)
     CHKERRQ(ierr)
-  endif
+  end if
 
   ! assign values to matrixes A and B as specified in Eqs. (A.20) and (A.21) in
   !   [Nuclear Fusion 52, 043006 (2012)](http://wdeng.info/?p=117)
@@ -251,38 +251,38 @@ do irad = irad_low, irad_high
       CHKERRQ(ierr)
       call MatView(acs_matB, PETSC_VIEWER_STDOUT_WORLD, ierr)
       CHKERRQ(ierr)
-    endif
-  endif
+    end if
+  end if
 
   ! solve for eigenvalues (continua frequencies) and output
   call alcon_solver_solve(acdprofile(1, irad), acdprofile(5, irad))
-enddo
+end do
 if (verbosity == 1) then
   call PetscPrintf(MPI_COMM_WORLD, "\n", ierr)
   CHKERRQ(ierr)
-endif
+end if
 
 
 if (verbosity >= 1) then
   call PetscPrintf(MPI_COMM_WORLD, "Info: writing data output files...\n", ierr)
   CHKERRQ(ierr)
-endif
+end if
 if (mype < ndom_rad) then ! radial domain heads write data output files
   call alcon_output_data(comm_radhead, ndom_rad)
-endif
+end if
 
 if (verbosity >= 2) then
   call PetscPrintf(MPI_COMM_WORLD, "Info: writing extra output files...\n", ierr)
   CHKERRQ(ierr)
-endif
+end if
 if (mype < ndom_rad) then ! radial domain heads write extra output files
   call alcon_output_extra(comm_radhead)
-endif
+end if
 
 if (verbosity >= 1) then
   call PetscPrintf(MPI_COMM_WORLD, "Info: destroying objects and finalizing...\n", ierr)
   CHKERRQ(ierr)
-endif
+end if
 
 ! solver finalization, destroy PETSc and SLEPc objects
 call alcon_solver_final
@@ -292,7 +292,7 @@ if (verbosity >= 1) then
   wt2 = MPI_Wtime()
   call PetscPrintf(MPI_COMM_WORLD, "Info: time spent by ALCON: " // sec2text(wt2 - wt1) // "\n", ierr)
   CHKERRQ(ierr)
-endif
+end if
 
 call SlepcFinalize(ierr)
 CHKERRQ(ierr)

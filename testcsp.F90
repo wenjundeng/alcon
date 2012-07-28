@@ -96,15 +96,15 @@ if (mype == 0) then
   do i = 1, nxip
     write (fexact, *) xip(i), xip(i) * sin(2.0_cskpr * PETSC_PI * xip(i) + 1.0_cskpr)
     write (fip, *) xip(i), real(yip(i), cskpr)
-  enddo
+  end do
   do i = 1, nx
     write (ftab, *) x(i), real(y(i), cskpr)
-  enddo
+  end do
 
   close (fexact)
   close (ftab)
   close (fip)
-endif
+end if
 
 call cspline_final
 
