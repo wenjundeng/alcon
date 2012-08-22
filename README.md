@@ -42,13 +42,12 @@ along with ALCON.  If not, see <http://www.gnu.org/licenses/>.
 System requirements
 -------------------
 
-ALCON requires MPI-2, and the complex version of
-[PETSc](http://www.mcs.anl.gov/petsc/) and
-[SLEPc](http://www.grycap.upv.es/slepc/).  ALCON has been tested with
-[MPICH2](http://www.mcs.anl.gov/research/projects/mpich2/) 1.4,
+ALCON requires MPI-2, [PETSc](http://www.mcs.anl.gov/petsc/) and
+[SLEPc](http://www.grycap.upv.es/slepc/) with complex scalars.  ALCON has been
+tested with [MPICH2](http://www.mcs.anl.gov/research/projects/mpich2/) 1.4,
 [OpenMPI](http://www.open-mpi.org/) 1.5, PETSc and SLEPc 3.2.  Although with a
 few tweaks ALCON can probably work with PETSc and SLEPc 3.0 and 3.1, it is
-recommended to use PETSc and SLEPc 3.2.
+recommended to use PETSc and SLEPc 3.2+.
 
 ALCON also requires a Fortran 90 compiler for compilation.  ALCON has been
 tested with [GNU Fortran](http://gcc.gnu.org/fortran/) 4.6.
@@ -128,8 +127,8 @@ It is recommended to use GNU make (or a compatible alternative) to compile the
 code with the included Makefile.  Before compiling, open the Makefile and go to
 the place after the license part, you will see a few parameters, such as
 compiler name, compiling options, MPI executor, etc., defined there.  Adjust
-the them according to your system environment.  After saving your adjustments,
-you can compile ALCON by executing in the terminal:
+them according to your system environment.  After saving your adjustments, you
+can compile ALCON by executing in the terminal:
 
 	make
 
@@ -170,12 +169,12 @@ Get latest updates on the project website:
 <http://wdeng.info/codes/alcon>.
 
 Report bugs, request new features at:
-<http://github.com/wenjundeng/alcon/issues>.
+<https://github.com/wenjundeng/alcon/issues>.
 
 Contribute patches, new features by forking the project on GitHub:
-<http://github.com/wenjundeng/alcon>, applying your contributions to the forked
-project, and then submitting a pull request at:
-<http://github.com/wenjundeng/alcon/pulls>.
+<https://github.com/wenjundeng/alcon>, applying your contributions to the
+forked project, and then submitting a pull request at:
+<https://github.com/wenjundeng/alcon/pulls>.
 
 
 Acknowledgments
