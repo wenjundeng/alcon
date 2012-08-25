@@ -52,8 +52,8 @@ recommended to use PETSc and SLEPc 3.2+.
 ALCON also requires a Fortran 90 compiler for compilation.  ALCON has been
 tested with [GNU Fortran](http://gcc.gnu.org/fortran/) 4.6.  [GNU core
 utilities](http://www.gnu.org/software/coreutils/) is required to use GNU make
-for automatic compilation.  Typical installation of any major GNU/Linux
-distribution has GNU core utilities pre-installed.
+for automatic compilation.  If your system is GNU/Linux, it is likely that GNU
+core utilities are ready to use.
 
 Note that BSD-like systems, e.g., FreeBSD and Apple Mac OS X, have utilities
 similar to GNU core utilities, but they differ from the GNU version.  You need
