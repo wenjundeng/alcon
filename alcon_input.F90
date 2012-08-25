@@ -102,6 +102,8 @@ PetscReal, parameter :: imagrealratiocutoff = 0.1_kpr
 ! 1.0 for no scaling, in which case omega is normalized by v_{Ap}/R_0, i.e.,
 !   Eq. (A.36) in [Nuclear Fusion 52, 043006 (2012)](http://wdeng.info/?p=117)
 PetscReal, parameter :: omegascale = 1.0_kpr
+!PetscReal, parameter :: omegascale = 7.8384e8_kpr / &
+!(173.86_kpr * 2.0_kpr * 3.14159265358979323846264_kpr * 1e3_kpr) ! DIII-D #142111 745ms, convert to kHz
 
 ! if scaled solution of omega is larger than this cut-off frequency, then drop
 !   this solution.

@@ -1,6 +1,6 @@
 ALCON
 =====
-version 2012-07-28 17:56:17-04:00
+version 2012-08-24 23:04:13-04:00
 ---------------------------------
 
 ALCON is a code for solving ideal MHD Alfven continua in tokamaks,
@@ -50,7 +50,18 @@ few tweaks ALCON can probably work with PETSc and SLEPc 3.0 and 3.1, it is
 recommended to use PETSc and SLEPc 3.2+.
 
 ALCON also requires a Fortran 90 compiler for compilation.  ALCON has been
-tested with [GNU Fortran](http://gcc.gnu.org/fortran/) 4.6.
+tested with [GNU Fortran](http://gcc.gnu.org/fortran/) 4.6.  [GNU core
+utilities](http://www.gnu.org/software/coreutils/) is required to use GNU make
+for automatic compilation.  Typical installation of any major GNU/Linux
+distribution has GNU core utilities pre-installed.
+
+Note that BSD-like systems, e.g., FreeBSD and Apple Mac OS X, have utilities
+similar to GNU core utilities, but they differ from the GNU version.  You need
+to install the GNU version of them if you want to compile ALCON using GNU make
+on BSD-like systems.  On Apple Mac OS X, GNU core utilities can be installed
+through [Fink](http://www.finkproject.org/) or
+[MacPorts](http://www.macports.org/).  You can also compile ALCON manually
+without using GNU make.
 
 Unless you keep excessive (100+) poloidal m-harmonics and want excessive high
 radial resolution (solving 5000+ radial grid points), ALCON should be able to
