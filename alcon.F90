@@ -25,7 +25,7 @@ implicit none
 #include "finclude/petsc.h90"
 #include "finclude/slepc.h"
 
-character(25), parameter :: version = '2012-08-24 23:04:13-04:00'
+character(25), parameter :: version = '2012-09-26 21:32:19-04:00'
 
 ! indexing variables
 PetscInt :: i
@@ -59,14 +59,16 @@ CHKERRQ(ierr)
 call MPI_Comm_rank(MPI_COMM_WORLD, mype, ierr)
 CHKERRQ(ierr)
 if (mype == 0) then
-  write (*, "(a)") "Error: ALCON requires complex version of PETSc. Please re-compiled it with complex version of PETSc."
+  write (*, "(a)") "Error: ALCON requires complex version of PETSc. Please use complex version of PETSc."
 end if
 call MPI_Finalize(ierr)
 CHKERRQ(ierr)
 stop 1
 #endif
 
-! initialization
+!!!!!!!!!!!!!!!!!!
+! initialization !
+!!!!!!!!!!!!!!!!!!
 call SlepcInitialize(PETSC_NULL_CHARACTER, ierr)
 CHKERRQ(ierr)
 wt1 = MPI_Wtime() ! record start time
@@ -154,7 +156,9 @@ if (verbosity >= 1) then
   CHKERRQ(ierr)
 end if
 
-! radial domain and solver decomposition
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! radial domain and solver decomposition !
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 call MPI_Comm_size(MPI_COMM_WORLD, npe, ierr)
 CHKERRQ(ierr)
 ndom_rad = ceiling(real(npe) / npe_solver)
@@ -197,7 +201,7 @@ if (verbosity >= 2) then
   write (*, "(a)") trim(adjustl(msg))
 end if
 
-! solver initialization, create PETSc and SLEPc objects
+! solver initialization, create PETSc and SLEPc objects !
 call alcon_solver_init(comm_solver)
 
 if (verbosity >= 1) then
@@ -217,7 +221,9 @@ if (verbosity == 1) then
   iprogress = 1
 end if
 
-! main loop over radial grids
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! main loop over radial grids !
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 do irad = irad_low, irad_high
 !do irad = 1, nrad
 !do irad = iraddiag - 1, iraddiag
@@ -238,22 +244,6 @@ do irad = irad_low, irad_high
   !   [Nuclear Fusion 52, 043006 (2012)](http://wdeng.info/?p=117)
   call alcon_solver_prepare(irad)
 
-  ! this doesn't work anymore after radial domain decomposition
-  ! so here set condition to "verbosity >= 10" to disable it
-  if (verbosity >= 10 .and. mydom_rad == 0) then
-    ! print out matA, matB on irad == 1 and irad == iraddiag
-    if (irad == 1 .or. irad == iraddiag) then
-      call PetscPrintf(MPI_COMM_WORLD, "Info: matA:\n", ierr)
-      CHKERRQ(ierr)
-      call MatView(acs_matA, PETSC_VIEWER_STDOUT_WORLD, ierr)
-      CHKERRQ(ierr)
-      call PetscPrintf(MPI_COMM_WORLD, "Info: matB:\n", ierr)
-      CHKERRQ(ierr)
-      call MatView(acs_matB, PETSC_VIEWER_STDOUT_WORLD, ierr)
-      CHKERRQ(ierr)
-    end if
-  end if
-
   ! solve for eigenvalues (continua frequencies) and output
   call alcon_solver_solve(acdprofile(1, irad), acdprofile(5, irad))
 end do
@@ -262,7 +252,9 @@ if (verbosity == 1) then
   CHKERRQ(ierr)
 end if
 
-
+!!!!!!!!!!
+! output !
+!!!!!!!!!!
 if (verbosity >= 1) then
   call PetscPrintf(MPI_COMM_WORLD, "Info: writing data output files...\n", ierr)
   CHKERRQ(ierr)
@@ -284,9 +276,11 @@ if (verbosity >= 1) then
   CHKERRQ(ierr)
 end if
 
+!!!!!!!!!!!!!!!!
+! finalization !
+!!!!!!!!!!!!!!!!
 ! solver finalization, destroy PETSc and SLEPc objects
 call alcon_solver_final
-
 
 if (verbosity >= 1) then
   wt2 = MPI_Wtime()
