@@ -22,7 +22,7 @@
 # adjust the following parameters according to your system environment before
 #   compiling and running ALCON
 
-# MPI Fortran 90 compiler
+# MPI Fortran 95 compiler
 MPIF90 := mpif90
 
 # compiling options

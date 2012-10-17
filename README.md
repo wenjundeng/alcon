@@ -49,19 +49,8 @@ tested with [MPICH2](http://www.mcs.anl.gov/research/projects/mpich2/) 1.4,
 few tweaks ALCON can probably work with PETSc and SLEPc 3.0 and 3.1, it is
 recommended to use PETSc and SLEPc 3.2+.
 
-ALCON also requires a Fortran 90 compiler for compilation.  ALCON has been
-tested with [GNU Fortran](http://gcc.gnu.org/fortran/) 4.6.  [GNU core
-utilities](http://www.gnu.org/software/coreutils/) is required to use GNU make
-for automatic compilation.  If your system is GNU/Linux, it is likely that GNU
-core utilities are ready to use.
-
-Note that BSD-like systems, e.g., FreeBSD and Apple Mac OS X, have utilities
-similar to GNU core utilities, but they differ from the GNU version.  You need
-to install the GNU version of them if you want to compile ALCON using GNU make
-on BSD-like systems.  On Apple Mac OS X, GNU core utilities can be installed
-through [Fink](http://www.finkproject.org/) or
-[MacPorts](http://www.macports.org/).  You can also compile ALCON manually
-without using GNU make.
+ALCON also requires a Fortran 95 compiler for compilation.  ALCON has been
+tested with [GNU Fortran](http://gcc.gnu.org/fortran/) 4.6.
 
 Unless you keep excessive (100+) poloidal m-harmonics and want excessive high
 radial resolution (solving 5000+ radial grid points), ALCON should be able to
