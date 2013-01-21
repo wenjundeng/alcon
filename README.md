@@ -1,6 +1,6 @@
 ALCON
 =====
-version 2012-09-26 21:32:19-04:00
+version 2013-01-21 16:26:49+08:00
 ---------------------------------
 
 ALCON is a code for solving ideal MHD Alfven continua in tokamaks,

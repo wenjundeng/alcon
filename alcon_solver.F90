@@ -49,7 +49,7 @@ CHKERRQ(ierr)
 if (finitebeta > 2) then
   call MatSetSizes(acs_matA, PETSC_DECIDE, PETSC_DECIDE, (m2 - m1 + 1) * 2, (m2 - m1 + 1) * 2, ierr)
   CHKERRQ(ierr)
-  call MatMPIAIJSetPreallocation(acs_matA, noffdiag * 2 + 1, PETSC_NULL_INTEGER, noffdiag * 3 + 1, PETSC_NULL_INTEGER, ierr)
+  call MatMPIAIJSetPreallocation(acs_matA, noffdiag * 4 + 2, PETSC_NULL_INTEGER, noffdiag * 3 + 1, PETSC_NULL_INTEGER, ierr)
   CHKERRQ(ierr)
 else
   call MatSetSizes(acs_matA, PETSC_DECIDE, PETSC_DECIDE, m2 - m1 + 1, m2 - m1 + 1, ierr)
@@ -71,7 +71,7 @@ CHKERRQ(ierr)
 if (finitebeta > 2) then
   call MatSetSizes(acs_matB, PETSC_DECIDE, PETSC_DECIDE, (m2 - m1 + 1) * 2, (m2 - m1 + 1) * 2, ierr)
   CHKERRQ(ierr)
-  call MatMPIAIJSetPreallocation(acs_matB, noffdiag * 2 + 1, PETSC_NULL_INTEGER, noffdiag * 3 + 1, PETSC_NULL_INTEGER, ierr)
+  call MatMPIAIJSetPreallocation(acs_matB, noffdiag * 4 + 2, PETSC_NULL_INTEGER, noffdiag * 3 + 1, PETSC_NULL_INTEGER, ierr)
   CHKERRQ(ierr)
 else
   call MatSetSizes(acs_matB, PETSC_DECIDE, PETSC_DECIDE, m2 - m1 + 1, m2 - m1 + 1, ierr)
