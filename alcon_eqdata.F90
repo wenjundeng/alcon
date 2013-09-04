@@ -367,6 +367,7 @@ iacerr = intbuf(1)
 nrad_alcondat = intbuf(2)
 nfft_alcondat = intbuf(3)
 if (iacerr > 0) then
+  if (mype == 0) deallocate(acdprofile_alcondat, acdfft_alcondat)
   return
 end if
 if (mype /= 0) then

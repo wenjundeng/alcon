@@ -137,9 +137,10 @@ PetscReal, parameter :: omegacutoff = 1.0_kpr
 !   will use metapost terminal for output.  a modern LaTeX distribution is
 !   required for this outformat.  the default figure from "make" is alcon.mps.
 !   you can also use "make alcon.eps" to generate .eps file (requires mps2eps
-!   <http://www.ctan.org/tex-archive/support/mps2eps>), or "make alcon.pdf" to
-!   generate .pdf file, or "make alcon.png" to generate .png file (requires
-!   "convert" in ImageMagick <http://www.imagemagick.org>).
+!   <http://www.ctan.org/tex-archive/support/mps2eps> or Omega Tools
+!   <http://wdeng.info/codes/omegatools/>), or "make alcon.pdf" to generate
+!   .pdf file, or "make alcon.png" to generate .png file (requires "convert" in
+!   ImageMagick <http://www.imagemagick.org>).
 ! outformat = 33: the same as outformat = 32, except that the generated
 !   Makefile will make use of Omega Tools
 !   <http://wdeng.info/codes/omegatools/>.

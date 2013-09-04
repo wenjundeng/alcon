@@ -25,7 +25,7 @@ implicit none
 #include "finclude/petsc.h90"
 #include "finclude/slepc.h"
 
-character(25), parameter :: version = '2013-01-21 16:26:49+08:00'
+character(25), parameter :: version = '2013-09-04 15:21:30-04:00'
 
 ! indexing variables
 PetscInt :: i

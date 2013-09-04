@@ -59,22 +59,28 @@ end if
 if (finitebeta > 2) then
   if (im < m2 - m1 + 1) then
     if (m1 + im < 0) then
-      write (alcon_output_filename, '(a, "a_n", i3.3, "m_", i2.2, a)') trim(path), n, abs(m1 + im), trim(ext)
+      write (alcon_output_filename, '(2a, i3.3, a, i2.2, a)') &
+        trim(path), 'a_n', n, 'm_', abs(m1 + im), trim(ext)
     else
-      write (alcon_output_filename, '(a, "a_n", i3.3, "m", i3.3, a)') trim(path), n, m1 + im, trim(ext)
+      write (alcon_output_filename, '(2a, i3.3, a, i3.3, a)') &
+        trim(path), 'a_n', n, 'm', m1 + im, trim(ext)
     end if
   else
     if (m1 + im - (m2 - m1 + 1) < 0) then
-      write (alcon_output_filename, '(a, "s_n", i3.3, "m_", i2.2, a)') trim(path), n, abs(m1 + im - (m2 - m1 + 1)), trim(ext)
+      write (alcon_output_filename, '(2a, i3.3, a, i2.2, a)') &
+        trim(path), 's_n', n, 'm_', abs(m1 + im - (m2 - m1 + 1)), trim(ext)
     else
-      write (alcon_output_filename, '(a, "s_n", i3.3, "m", i3.3, a)') trim(path), n, m1 + im - (m2 - m1 + 1), trim(ext)
+      write (alcon_output_filename, '(2a, i3.3, a, i3.3, a)') &
+        trim(path), 's_n', n, 'm', m1 + im - (m2 - m1 + 1), trim(ext)
     end if
   end if
 else
   if (m1 + im < 0) then
-    write (alcon_output_filename, '(a, "n", i3.3, "m_", i2.2, a)') trim(path), n, abs(m1 + im), trim(ext)
+    write (alcon_output_filename, '(2a, i3.3, a, i2.2, a)') &
+      trim(path), 'n', n, 'm_', abs(m1 + im), trim(ext)
   else
-    write (alcon_output_filename, '(a, "n", i3.3, "m", i3.3, a)') trim(path), n, m1 + im, trim(ext)
+    write (alcon_output_filename, '(2a, i3.3, a, i3.3, a)') &
+      trim(path), 'n', n, 'm', m1 + im, trim(ext)
   end if
 end if
 end function alcon_output_filename
@@ -626,27 +632,27 @@ select case (outformat)
     end if
     write (fgp, "(a)") "set key outside"
     write (fgp, "(a)") "set key textcolor rgb variable"
-    write (fgp, "(a)") "plot \"
+    write (fgp, "(2a)") "plot ", char(92)
     if (finitebeta > 2) then
       do im = m2 - m1 + 1, min((m2 - m1 + 1) + (out_label_m1 - m1) - 1, imlast2)
         if (ndata(im) > 0) then
-          write (fgp, "(3a)") "'", trim(alcon_output_filename(im, PETSC_FALSE, PETSC_TRUE)), &
-            "' notitle with points ls 41, \"
+          write (fgp, "(4a)") "'", trim(alcon_output_filename(im, PETSC_FALSE, PETSC_TRUE)), &
+            "' notitle with points ls 41, ", char(92)
         end if
       end do
 
       do im = (m2 - m1 + 1) + out_label_m1 - m1, min((m2 - m1 + 1) + out_label_m1 - m1 + nlabeled - 1, imlast2)
         if (ndata(im) > 0) then
           write (linestyle, '(i2)') min(42 + im - ((m2 - m1 + 1) + out_label_m1 - m1), 42 + ncolor - 1)
-          write (fgp, "(5a)") "'", trim(alcon_output_filename(im, PETSC_FALSE, PETSC_TRUE)), &
-            "' notitle with points ls ", linestyle, ", \"
+          write (fgp, "(6a)") "'", trim(alcon_output_filename(im, PETSC_FALSE, PETSC_TRUE)), &
+            "' notitle with points ls ", linestyle, ", ", char(92)
         end if
       end do
 
       do im = (m2 - m1 + 1) + out_label_m1 - m1 + nlabeled, imlast2
         if (ndata(im) > 0) then
-          write (fgp, "(3a)") "'", trim(alcon_output_filename(im, PETSC_FALSE, PETSC_TRUE)), &
-            "' notitle with points ls 41, \"
+          write (fgp, "(4a)") "'", trim(alcon_output_filename(im, PETSC_FALSE, PETSC_TRUE)), &
+            "' notitle with points ls 41, ", char(92)
         end if
       end do
     end if ! (finitebeta > 2)
@@ -654,7 +660,7 @@ select case (outformat)
     do im = 0, min((out_label_m1 - m1) - 1, imlast1)
       if (ndata(im) > 0) then
         if (im < imlast1) then
-          linetrailing = ", \"
+          linetrailing = ", " // char(92)
         else
           linetrailing = ""
         end if
@@ -666,7 +672,7 @@ select case (outformat)
     do im = out_label_m1 - m1, min(out_label_m1 - m1 + nlabeled - 1, imlast1)
       if (ndata(im) > 0) then
         if (im < imlast1) then
-          linetrailing = ", \"
+          linetrailing = ", " // char(92)
         else
           linetrailing = ""
         end if
@@ -681,7 +687,7 @@ select case (outformat)
     do im = out_label_m1 - m1 + nlabeled, imlast1
       if (ndata(im) > 0) then
         if (im < imlast1) then
-          linetrailing = ", \"
+          linetrailing = ", " // char(92)
         else
           linetrailing = ""
         end if
@@ -719,14 +725,14 @@ select case (outformat)
     write (fmakefile, "(a)") ""
     if (outformat == 30 .or. outformat == 32) then
       if (outformat == 30) then
-        write (fmakefile, "(a)") "alcon.eps : alcon.gp \"
+        write (fmakefile, "(2a)") "alcon.eps : alcon.gp ", char(92)
       else
-        write (fmakefile, "(a)") "alcon.mp : alcon.gp \"
+        write (fmakefile, "(2a)") "alcon.mp : alcon.gp ", char(92)
       end if
       do im = 0, imlast2
         if (ndata(im) > 0) then
           if (im < imlast2) then
-            linetrailing = " \"
+            linetrailing = " " // char(92)
           else
             linetrailing = ""
           end if

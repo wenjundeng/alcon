@@ -91,8 +91,8 @@ real(kind = kreal) :: psi, theta
 ! dbdt(psi, theta): partial b / partial theta
 ! gradpsi(psi, theta): magnitude of gradient of poloidal flux
 ! fftr1d(real_array_1d): performs FFT on a real 1D array
-! these function should return values in CGS units
-real(kind = kint), external :: rho, q, g, ci, ni, ti, ne, te, b, dbdt, gradpsi, fftr1d
+! these functions should return values in CGS units
+real(kind = kreal), external :: rho, q, g, ci, ni, ti, ne, te, b, dbdt, gradpsi, fftr1d
 
 ! initialization
 acdprofile = 0d0
