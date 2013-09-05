@@ -45,9 +45,9 @@ System requirements
 ALCON requires MPI-2, [PETSc](http://www.mcs.anl.gov/petsc/) and
 [SLEPc](http://www.grycap.upv.es/slepc/) with complex scalars.  ALCON has been
 tested with [MPICH2](http://www.mcs.anl.gov/research/projects/mpich2/) 1.4,
-[OpenMPI](http://www.open-mpi.org/) 1.5, PETSc and SLEPc 3.2.  Although with a
-few tweaks ALCON can probably work with PETSc and SLEPc 3.0 and 3.1, it is
-recommended to use PETSc and SLEPc 3.2+.
+[OpenMPI](http://www.open-mpi.org/) 1.5, PETSc and SLEPc 3.3.  Although with a
+few tweaks ALCON can probably work with other versions of PETSc and SLEPc, it
+is recommended to use PETSc and SLEPc 3.3.
 
 ALCON also requires a Fortran 95 compiler for compilation.  ALCON has been
 tested with [GNU Fortran](http://gcc.gnu.org/fortran/) 4.6.
@@ -181,14 +181,14 @@ Acknowledgments
 ---------------
 
 ALCON was originally developed when I was a graduate student at University of
-California, Irvine, supported by the US Department of Energy (DOE) SciDAC
-Center for Gyrokinetic Simulation of Energetic Particle Turbulence and
-Transport (GSEP).  ALCON is being further developed when I am a research
-physicist at Princeton Plasma Physics Laboratory, supported by the US DOE
-SciDAC Center for Nonlinear Simulation of Energetic Particles in Burning
-Plasmas (CSEP).  I'd also like to acknowledge useful discussions with Eric
-Bass, Guoyong Fu, Zhihong Lin, Don Spong, Xin Wang, Zhixuan Wang, and
-Huasen Zhang.
+California, Irvine, where my research was supported by the U.S. Department of
+Energy (DOE) SciDAC Center for Gyrokinetic Simulation of Energetic Particle
+Turbulence and Transport (GSEP).  The development continued after I became a
+research physicist at Princeton Plasma Physics Laboratory, where my research
+was supported by the U.S. DOE SciDAC Center for Nonlinear Simulation of
+Energetic Particles in Burning Plasmas (CSEP).  I would like to acknowledge
+useful discussions with Eric Bass, Guo-Yong Fu, Zhihong Lin, Don Spong, Xin
+Wang, Zhixuan Wang, and Huasen Zhang.
 
 Wenjun Deng
 
