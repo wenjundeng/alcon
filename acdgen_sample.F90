@@ -1,4 +1,4 @@
-! Copyright 2011, 2012 Wenjun Deng <wdeng@wdeng.info>
+! Copyright 2011-2014 Wenjun Deng <wdeng@wdeng.info>
 !
 ! This file is part of ALCON
 !
@@ -28,54 +28,54 @@ real(kind = kreal), parameter :: pi = 3.14159265358979323846264d0
 ! gamma for ions and electrons
 real(kind = kreal), parameter :: gammai = 7d0 / 4d0, gammae = 1d0
 
-! mass ratio of ion to proton
-real(kind = kreal), parameter :: mass_ratio_of_ion_to_proton = 1d0
+! ion mass (normalized to proton mass)
+real(kind = kreal), parameter :: massi = 1d0
 
 ! on-axis magnetic field (Gauss)
-real(kind = kreal), parameter :: b0 = 1.91d4
+real(kind = kreal), parameter :: bb0 = 1.91d4
 
 ! on-axis major radius (cm)
-real(kind = kreal), parameter :: r0 = 1.4194d2
+real(kind = kreal), parameter :: rr0 = 1.4194d2
 
 ! poloidal flux at wall
 real(kind = kreal), parameter :: psiw = 2.59808d-2
 
-! number of radial grid points
+! number of radial (psi) grid points
 ! since ALCON will use cubic spline interpolation,
 ! the radial resolution in alcon.dat does not need to be very high.
 ! usually 200 is good enough
 integer(kind = kint), parameter :: nrad = 200
 
-! number of poloidal grid points in the sampling for FFT
-integer(kind = kint), parameter :: npol = 2560
+! number of poloidal (theta) grid points in the sampling for FFT
+integer(kind = kint), parameter :: ntheta = 2048
 
 ! for the Fourier components in Eqs. (A.23)--(A.26) and (A.43) in
-!   [Nuclear Fusion 52, 043006 (2012)](http://wdeng.info/?p=117), up to nfft
+!   [Nuclear Fusion 52, 043006 (2012)](http://wdeng.info/?p=117), up to nfftcoef
 !   will be written to alcon.dat
-integer(kind = kint), parameter :: nfft = 100
+integer(kind = kint), parameter :: nfftcoef = 100
 
 ! number of profiles and number of FFT data sets
-integer(kind = kint), parameter :: nprofiledata = 5, nfftdata = 5
+integer(kind = kint), parameter :: nprofile = 5, nfft = 5
 
 ! file number
 integer(kind = kint), parameter :: falcondat = 240
 
 ! two major arrays to write to alcon.dat
-real(kind = kreal), dimension(nprofiledata, nrad) :: acdprofile ! profile data
-complex(kind = kreal), dimension(0 : nfft, nfftdata, nrad) :: acdfft ! Fourier component data
+real(kind = kreal), dimension(nprofile, nrad) :: profiles ! profile data
+complex(kind = kreal), dimension(0 : nfftcoef, nfft, nrad) :: fftcoefs ! Fourier component data
 
-! sampling over poloidal direction for matrixes H, J, K, L, and N.
+! sampling over poloidal (theta) direction for matrixes H, J, K, L, and N.
 ! these matrixes are defined in Eqs. (A.23)--(A.26) and (A.42) in
 !   [Nuclear Fusion 52, 043006 (2012)](http://wdeng.info/?p=117).
-real(kind = kreal), dimension(0 : npol - 1) :: hsamp, jsamp, ksamp, lsamp, nsamp
+real(kind = kreal), dimension(0 : ntheta - 1) :: hhsamp, jjsamp, kksamp, llsamp, nnsamp
 
 ! for temporary storage of the Fourier components obtained by performing FFT on
 !   the above arrays
 ! since FFT is performed on real arrays, only the first half of the Fourier
 !   components are meaningful.
-complex(kind = kreal), dimension(0 : npol / 2) :: sampfft
+complex(kind = kreal), dimension(0 : ntheta / 2) :: sampfft
 
-integer(kind = kint) :: irad, ipol
+integer(kind = kint) :: irad, itheta
 real(kind = kreal) :: psi, theta
 
 ! external functions containing equilibrium information are needed:
@@ -83,79 +83,111 @@ real(kind = kreal) :: psi, theta
 !   in your code)
 ! rho(psi): rho is the square root of the normalized (to wall) toroidal flux
 ! q(psi): safety factor q
-! g(psi), ci(psi): current functions g and I defined in Eq. (A.8) in
+! g(psi), ii(psi): current functions g and I defined in Eq. (A.8) in
 !   [Nuclear Fusion 52, 043006 (2012)](http://wdeng.info/?p=117)
-! ni(psi), ti(psi), ne(psi), te(psi): ion and electron densities and temperatures
-! b(psi, theta): magnetic field amplitude, where theta is the magnetic poloidal
-!   coordinate
-! dbdt(psi, theta): partial b / partial theta
+! deni(psi), tti(psi), dene(psi), tte(psi): ion and electron densities and
+!   temperatures
+! bb(psi, theta): magnetic field amplitude, where theta is the magnetic
+!   poloidal coordinate
+! dbbdtheta(psi, theta): partial b / partial theta
 ! gradpsi(psi, theta): magnitude of gradient of poloidal flux
 ! fftr1d(real_array_1d): performs FFT on a real 1D array
-! these functions should return values in CGS units
-real(kind = kreal), external :: rho, q, g, ci, ni, ti, ne, te, b, dbdt, gradpsi, fftr1d
+! in this sample subroutine, these functions should return values in CGS units
+real(kind = kreal), external :: rho, q, g, ii, deni, tti, dene, tte, bb, &
+  dbbdtheta, gradpsi, fftr1d
 
 ! initialization
-acdprofile = 0d0
-acdfft = 0d0
+profiles = 0d0
+fftcoefs = 0d0
 
 do irad = 1, nrad
   ! this way the radial grids are uniform in psi, psi ranging in
   !   [1d-4 * psiw, psiw], which may have too sparse grids in real space near
   !   magnetic axis.
   psi = psiw * (1d-4 + (1d0 - 1d-4) * (irad - 1) / (nrad - 1))
+
   ! this alternative way generates radial grids more uniform in real space.
   psi = psiw * (1d-2 + (1d0 - 1d-2) * (irad - 1) / (nrad - 1))**2
 
-  acdprofile(1, irad) = rho(psi)
-  acdprofile(2, irad) = q(psi)
-  ! for Jacobian calculation
-  acdprofile(3, irad) = g(psi) * q(psi) + ci(psi)
-  ! pressure profile
-  acdprofile(4, irad) = 4 * pi * &
-    (gammai * ni(psi) * ti(psi) + gammae * ne(psi) * te(psi)) / b0**2
-  ! mass density
-  acdprofile(5, irad) = (ni(psi) / ne(0d0)) * mass_ratio_of_ion_to_proton
+  ! 1st profile is radial coordinate
+  profiles(1, irad) = rho(psi)
 
-  do ipol = 0, npol - 1
-    theta = 2d0 * pi * ipol / npol
-    ! operators H, J, K, L, and N defined in Eqs. (A.23)--(A.26) and (A.42) in
-    !   [Nuclear Fusion 52, 043006 (2012)](http://wdeng.info/?p=117).
-    ! note that the last factors in the following lines are the normalization
+  ! 2nd profile is q-profile
+  profiles(2, irad) = q(psi)
+
+  ! 3rd profile is "g q + I" for Jacobian calculation
+  profiles(3, irad) = g(psi) * q(psi) + ii(psi)
+
+  ! 4th profile is pressure
+  profiles(4, irad) = 4 * pi * &
+    (gammai * deni(psi) * tti(psi) + gammae * dene(psi) * tte(psi)) / bb0**2
+
+  ! 5th profile is mass density
+  profiles(5, irad) = (deni(psi) / dene(0d0)) * massi
+
+  ! sampling operators H, J, K, L, and N along poloidal (theta) direction
+  !   defined in Eqs. (A.23)--(A.26) and (A.42) in
+  !   [Nuclear Fusion 52, 043006 (2012)](http://wdeng.info/?p=117).
+  do itheta = 0, ntheta - 1
+    theta = 2d0 * pi * itheta / ntheta
+    ! note that the last factors in the following lines are for normalization
     !   factors in Eqs. (A.28)--(A.31) and (A.44)
-    hsamp(ipol) = (gradpsi(psi, theta)**2 / acdprofile(3, irad)) / (b0 * r0)
-    jsamp(ipol) = (gradpsi(psi, theta)**2 * acdprofile(3, irad) / (b(psi, theta)**4)) * (b0 / r0**3)
-    ksamp(ipol) = (2d0 * g(psi) * dbdt(psi, theta) / (b(psi, theta)**3)) * (b0 / r0)
-    lsamp(ipol) = ((acdprofile(4, irad) + b(psi, theta)**2) * acdprofile(3, irad) &
-      / b(psi, theta)**4) * (b0 / r0)
-    nsamp(ipol) = (acdprofile(4, irad) * ksamp(ipol)**2 / lsamp(ipol)) / (b0 * r0)
+
+    ! sampling H
+    hhsamp(itheta) = (gradpsi(psi, theta)**2 / profiles(3, irad)) / (bb0 * rr0)
+
+    ! sampling J
+    jjsamp(itheta) = (gradpsi(psi, theta)**2 * profiles(3, irad) / (bb(psi, theta)**4)) * (bb0 / rr0**3)
+
+    ! sampling K
+    kksamp(itheta) = (2d0 * g(psi) * dbbdtheta(psi, theta) / (bb(psi, theta)**3)) * (bb0 / rr0)
+
+    ! sampling L
+    llsamp(itheta) = ((profiles(4, irad) + bb(psi, theta)**2) * profiles(3, irad) &
+      / bb(psi, theta)**4) * (bb0 / rr0)
+
+    ! sampling N
+    nnsamp(itheta) = (profiles(4, irad) * kksamp(itheta)**2 / llsamp(itheta)) / (bb0 * rr0)
   end do
-  ! the "/ npol" factors in the following lines are for normalization.
+
+  ! perform FFT on the operator samples to get the matrix elements
+  ! the "/ ntheta" factors in the following lines are for normalization.
   ! there may be an additional factor needed to be divided by, such as 2 * pi.
   ! check your fftr1d function, make sure after normalization, performing it
-  !   on cos(theta) would give 1 on the first Fourier component.
-  sampfft = fftr1d(hsamp)
-  acdfft(0 : nfft, 1, irad) = sampfft(0 : nfft) / npol
-  sampfft = fftr1d(jsamp)
-  acdfft(0 : nfft, 2, irad) = sampfft(0 : nfft) / npol
-  sampfft = fftr1d(ksamp)
-  acdfft(0 : nfft, 3, irad) = sampfft(0 : nfft) / npol
-  sampfft = fftr1d(lsamp)
-  acdfft(0 : nfft, 4, irad) = sampfft(0 : nfft) / npol
-  sampfft = fftr1d(nsamp)
-  acdfft(0 : nfft, 5, irad) = sampfft(0 : nfft) / npol
+  !   on cos(theta) would give 1 on the first (right after the zeroth)
+  !   Fourier component.
+
+  ! matrix elements for H
+  sampfft = fftr1d(hhsamp)
+  fftcoefs(0 : nfftcoef, 1, irad) = sampfft(0 : nfftcoef) / ntheta
+
+  ! matrix elements for J
+  sampfft = fftr1d(jjsamp)
+  fftcoefs(0 : nfftcoef, 2, irad) = sampfft(0 : nfftcoef) / ntheta
+
+  ! matrix elements for K
+  sampfft = fftr1d(kksamp)
+  fftcoefs(0 : nfftcoef, 3, irad) = sampfft(0 : nfftcoef) / ntheta
+
+  ! matrix elements for L
+  sampfft = fftr1d(llsamp)
+  fftcoefs(0 : nfftcoef, 4, irad) = sampfft(0 : nfftcoef) / ntheta
+
+  ! matrix elements for N
+  sampfft = fftr1d(nnsamp)
+  fftcoefs(0 : nfftcoef, 5, irad) = sampfft(0 : nfftcoef) / ntheta
 end do
 
 ! note that if in a parallel code, the writing part should be executed by only
-!   one process.
-! also note that here acdprofile and acdfft are written in column-major order
+!   one process, unless you parallelize it properly.
+! also note that here profiles and fftcoefs are written in column-major order
 !   as Fortran deals with multi-dimension arrays in this manner.  if you use
 !   another language to generate alcon.dat, make sure you still write the data
 !   in column-major order.
 open (falcondat, file = 'alcon.dat', status = 'replace')
-write (falcondat, *) nrad, nfft, nprofiledata, nfftdata
-write (falcondat, *) acdprofile
-write (falcondat, *) acdfft
+write (falcondat, *) nrad, nfftcoef, nprofile, nfft
+write (falcondat, *) profiles
+write (falcondat, *) fftcoefs
 close (falcondat)
 
 end subroutine acdgen
-

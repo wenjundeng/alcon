@@ -1,13 +1,4 @@
-*.o
-*.mod
+*.pyc
+__pycache__
 
-alcon
-alcon.log
 output
-
-testcsp
-testcsp.log
-fexact.dat
-ftab.dat
-fip.dat
-
